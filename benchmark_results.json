@@ -1,0 +1,13 @@
+{
+  "dataset_size": 84,
+  "accuracy": 0.9524,
+  "precision": 1.0,
+  "recall": 0.92,
+  "f1_score": 0.9583,
+  "confusion_matrix": {
+    "tp": 46,
+    "fp": 0,
+    "tn": 34,
+    "fn": 4
+  }
+}

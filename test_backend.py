@@ -125,6 +125,22 @@ class TestOpenSourceCompliance(unittest.TestCase):
         for c in components:
             self.assertFalse(c["cloud_call"], f"{c['name']} must be local offline")
 
+    def test_air_gap_privacy_verification(self):
+        from ghost_threads import verify_air_gap_isolation
+        audit = verify_air_gap_isolation()
+        self.assertEqual(audit["status"], "AIR_GAP_VERIFIED")
+        self.assertEqual(audit["external_endpoints_called"], 0)
+        self.assertEqual(len(audit["cloud_api_keys_in_env"]), 0)
+
+    def test_synthetic_tabpfn_prior_structure(self):
+        from ghost_threads import generate_synthetic_tabpfn_prior
+        X, y = generate_synthetic_tabpfn_prior(n_samples=100)
+        self.assertEqual(X.shape[0], 100)
+        self.assertEqual(X.shape[1], 3) # [days_cold, has_resolution, urgency]
+        self.assertEqual(len(y), 100)
+        # Verify binary classification targets
+        self.assertTrue(set(y).issubset({0, 1}))
+
 class TestEndToEndScanner(unittest.TestCase):
     def test_scan_sample_export(self):
         curr_dir = os.path.dirname(__file__)

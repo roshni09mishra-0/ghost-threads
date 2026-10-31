@@ -6,3 +6,16 @@ __pycache__/
 *.swo
 .DS_Store
 Thumbs.db
+
+# Video generator scratch files
+slides/
+slides_concat.txt
+test_full.png
+test_scroll.mp4
+capture_slides.py
+generate_elevenlabs.py
+render_scroll_video.py
+render_video.py
+update_dev_post.py
+test_output_ghosts.json
+

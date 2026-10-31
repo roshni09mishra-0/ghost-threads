@@ -638,6 +638,43 @@
       gap: 0.35rem;
     }
 
+    .ai-trace-btn {
+      background: transparent;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: var(--bone-dim);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      padding: 0.35rem 0.55rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+    }
+
+    .ai-trace-btn:hover {
+      border-color: var(--marigold);
+      color: var(--marigold-bright);
+    }
+
+    .ai-trace-drawer {
+      margin-top: 0.8rem;
+      padding: 0.75rem;
+      background: #090807;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      line-height: 1.55;
+      color: var(--bone-dim);
+      text-align: left;
+    }
+
+    .ai-trace-drawer .trace-tag {
+      color: var(--marigold);
+      font-weight: 700;
+    }
+
     .seance-replay-btn:hover {
       background: rgba(245, 158, 11, 0.15);
     }
@@ -1467,6 +1504,15 @@
                   <span>&#x25B6;</span>
                   <span>Séance: Watch ghost be born</span>
                 </button>
+                <button type="button" class="ai-trace-btn" onclick="toggleAITrace('trace-1')">
+                  <span>&#9881;</span>
+                  <span>AI Trace</span>
+                </button>
+                <div id="trace-1" class="ai-trace-drawer" style="display: none;">
+                  <div><span class="trace-tag">Gemma 2B:</span> Intent="commitment" | Anchor="before midnight"</div>
+                  <div><span class="trace-tag">TabPFN Vector:</span> [days=412, resolved=0, urgency=1.5] &rarr; score=0.95</div>
+                  <div><span class="trace-tag">Decision:</span> Restless Ghost (412 days cold, no resolution)</div>
+                </div>
                 <div class="ghost-footer-row">
                   <span style="color: var(--ash);">GitHub ping</span>
                   <div class="ghost-action-btns">
@@ -1503,6 +1549,15 @@
                   <span>&#x25B6;</span>
                   <span>Séance: Watch ghost be born</span>
                 </button>
+                <button type="button" class="ai-trace-btn" onclick="toggleAITrace('trace-2')">
+                  <span>&#9881;</span>
+                  <span>AI Trace</span>
+                </button>
+                <div id="trace-2" class="ai-trace-drawer" style="display: none;">
+                  <div><span class="trace-tag">Gemma 2B:</span> Intent="commitment" | Anchor="tomorrow"</div>
+                  <div><span class="trace-tag">TabPFN Vector:</span> [days=189, resolved=0, urgency=1.0] &rarr; score=0.82</div>
+                  <div><span class="trace-tag">Decision:</span> Restless Ghost (189 days cold, thread abandoned)</div>
+                </div>
                 <div class="ghost-footer-row">
                   <span style="color: var(--ash);">Peer DM</span>
                   <div class="ghost-action-btns">
@@ -1539,6 +1594,15 @@
                   <span>&#x25B6;</span>
                   <span>Séance: Watch ghost be born</span>
                 </button>
+                <button type="button" class="ai-trace-btn" onclick="toggleAITrace('trace-3')">
+                  <span>&#9881;</span>
+                  <span>AI Trace</span>
+                </button>
+                <div id="trace-3" class="ai-trace-drawer" style="display: none;">
+                  <div><span class="trace-tag">Gemma 2B:</span> Intent="commitment" | Anchor="this weekend"</div>
+                  <div><span class="trace-tag">TabPFN Vector:</span> [days=73, resolved=0, urgency=1.0] &rarr; score=0.61</div>
+                  <div><span class="trace-tag">Decision:</span> Restless Ghost (73 days cold, social debt)</div>
+                </div>
                 <div class="ghost-footer-row">
                   <span style="color: var(--ash);">WhatsApp group</span>
                   <div class="ghost-action-btns">
@@ -2064,6 +2128,12 @@
     }
 
     // 8. Maafi-nama (Apology Draft) Handler
+    function toggleAITrace(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+    }
+
     function openApology(target, promise, days, text) {
       const apology = document.getElementById('apologyCard');
       document.getElementById('apologyTarget').innerText = `Target: ${target} (${days} days cold)`;
