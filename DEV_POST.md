@@ -1,7 +1,7 @@
 ---
 title: Ghost Threads: Resurrecting 47 Unkept Promises on an Offline Ofrenda (Gemma + TabPFN + Render)
 published: true
-tags: devchallenge, hf26challenge, gemma, tabpfn, render
+tags: devchallenge, hf26challenge, gemma, render
 cover_image: https://raw.githubusercontent.com/roshni09mishra-0/ghost-threads/main/screenshots/ghost_threads_showcase.png
 canonical_url: https://ghost-threads.onrender.com/
 description: An offline conversational debt scanner powered by Google Gemma 2B and Prior Labs' TabPFN, hosted on Render.
