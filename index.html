@@ -1,0 +1,2193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ghost Threads | Unkept promises from your chats</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,800;1,9..144,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Kalam:wght@400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070605;
+      --bg-surface: #120f0c;
+      --bg-elevated: #1a1511;
+      --border-subtle: #29211a;
+      --border-marigold: #92400e;
+      --marigold: #f59e0b;
+      --marigold-bright: #fbbf24;
+      --marigold-deep: #b43403;
+      --clay: #854d0e;
+      --bone: #f1ebd8;
+      --bone-dim: #c5baa6;
+      --ash: #807667;
+      --glow: rgba(245, 158, 11, 0.18);
+      --font-display: 'Fraunces', serif;
+      --font-mono: 'Space Mono', monospace;
+      --font-hand: 'Kalam', cursive;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #19120a 0%, var(--bg) 75%);
+      min-height: 100vh;
+      color: var(--bone);
+      font-family: var(--font-mono);
+      font-size: 15px;
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Floating Marigold Petals & Ember Canvas */
+    #petalsCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Candle torchlight following mouse */
+    #torchlight {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 520px;
+      height: 520px;
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, rgba(180, 52, 3, 0.02) 42%, transparent 70%);
+      z-index: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Hidden Whispers on Dark Walls revealed by torchlight */
+    .wall-whisper {
+      position: absolute;
+      font-family: var(--font-hand);
+      color: rgba(245, 158, 11, 0.15);
+      font-size: 1.1rem;
+      pointer-events: none;
+      user-select: none;
+      z-index: 0;
+      transition: color 0.4s ease;
+    }
+
+    /* Minimal Golden Scallop Border */
+    .papel-minimal-border {
+      width: 100%;
+      height: 12px;
+      line-height: 0;
+      position: relative;
+      z-index: 10;
+      border-top: 1px solid rgba(245, 158, 11, 0.4);
+      background: transparent;
+      overflow: hidden;
+    }
+
+    .papel-minimal-border svg {
+      display: block;
+      width: 100%;
+      height: 12px;
+      fill: #f59e0b;
+      opacity: 0.65;
+    }
+
+    .layout-frame {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Header */
+    header {
+      padding: 2.2rem 0 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(245, 158, 11, 0.22);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .site-tag {
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--bone);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-diya {
+      width: 22px;
+      height: 24px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .sound-toggle-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--bone-dim);
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      padding: 0.35rem 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.15s ease;
+    }
+
+    .sound-toggle-btn:hover {
+      border-color: var(--marigold);
+      color: var(--marigold);
+    }
+
+    .sound-toggle-btn.playing {
+      border-color: var(--marigold);
+      color: var(--marigold-bright);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .status-badge {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ash);
+      border: 1px solid var(--border-subtle);
+      padding: 0.35rem 0.65rem;
+      background: var(--bg-surface);
+    }
+
+    .status-badge.highlight {
+      color: var(--marigold);
+      border-color: var(--border-marigold);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 5rem 0 4.5rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 3rem;
+      position: relative;
+    }
+
+    @media (min-width: 880px) {
+      .hero {
+        grid-template-columns: 1.35fr 0.85fr;
+        align-items: end;
+      }
+    }
+
+    .hero-kicker {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: var(--marigold);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .hero-kicker::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: var(--marigold);
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5.2vw, 4.6rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: var(--bone);
+      margin-bottom: 2rem;
+    }
+
+    .hero-title span.accent {
+      color: var(--marigold);
+      font-style: italic;
+      font-weight: 300;
+      text-shadow: 0 0 28px rgba(245, 158, 11, 0.35);
+    }
+
+    .hero-desc {
+      color: var(--bone-dim);
+      font-size: 1.05rem;
+      max-width: 530px;
+      margin-bottom: 2.5rem;
+      line-height: 1.75;
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .btn-marigold {
+      background: var(--marigold);
+      color: #100b07;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      padding: 0.95rem 1.9rem;
+      border: 1px solid var(--marigold-bright);
+      box-shadow: 0 0 22px rgba(245, 158, 11, 0.22);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+    }
+
+    .btn-marigold:hover,
+    .btn-marigold:focus-visible {
+      transform: translateY(-2px);
+      box-shadow: 0 0 34px rgba(245, 158, 11, 0.45);
+      outline: 2px solid var(--bone);
+    }
+
+    .btn-marigold:active { transform: translateY(0); }
+
+    .cta-subtext {
+      color: var(--ash);
+      font-size: 0.8rem;
+    }
+
+    /* Oversized Live Number Anchor with Folk Spirit Silhouette */
+    .hero-anchor-box {
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      padding: 2.5rem 2rem;
+      position: relative;
+      box-shadow: inset 0 0 45px rgba(0, 0, 0, 0.7);
+    }
+
+    .hero-anchor-box::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: 12%;
+      width: 45px;
+      height: 2px;
+      background: var(--marigold);
+    }
+
+    .hero-spirit-silhouette {
+      position: absolute;
+      top: -24px;
+      right: 20px;
+      width: 56px;
+      height: 64px;
+      animation: spiritHover 6s ease-in-out infinite alternate;
+    }
+
+    @keyframes spiritHover {
+      0% { transform: translateY(0) rotate(-2deg); opacity: 0.85; }
+      100% { transform: translateY(-8px) rotate(2deg); opacity: 1; }
+    }
+
+    .hero-big-stat {
+      font-family: var(--font-display);
+      font-size: clamp(4.5rem, 8.5vw, 7.2rem);
+      font-weight: 800;
+      line-height: 0.85;
+      color: var(--bone);
+      margin-bottom: 0.85rem;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-big-stat span { color: var(--marigold); }
+
+    .hero-stat-label {
+      font-size: 0.95rem;
+      color: var(--bone-dim);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+
+    .live-ticker {
+      font-size: 0.78rem;
+      color: var(--marigold);
+      margin-bottom: 0.75rem;
+      display: block;
+      font-family: var(--font-mono);
+    }
+
+    .hero-stat-detail {
+      font-size: 0.82rem;
+      color: var(--ash);
+      line-height: 1.55;
+    }
+
+    /* Section defaults */
+    section {
+      padding: 5rem 0;
+      border-top: 1px solid var(--border-subtle);
+      position: relative;
+    }
+
+    .section-eyebrow {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: var(--marigold);
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .section-headline {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3.4vw, 2.7rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--bone);
+      margin-bottom: 2rem;
+      line-height: 1.22;
+    }
+
+    /* 2. The Night it Started */
+    .story-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .story-grid { grid-template-columns: 1.35fr 1fr; }
+    }
+
+    .story-prose p {
+      font-size: 1.05rem;
+      color: var(--bone-dim);
+      line-height: 1.85;
+      margin-bottom: 1.5rem;
+    }
+
+    .story-prose p:last-child { margin-bottom: 0; }
+
+    .todo-pill {
+      background: rgba(180, 52, 3, 0.25);
+      border: 1px dashed var(--marigold-deep);
+      color: var(--marigold-bright);
+      padding: 0.1rem 0.45rem;
+      font-size: 0.85em;
+    }
+
+    .ledger-aside {
+      background: var(--bg-surface);
+      border-left: 2px solid var(--border-marigold);
+      padding: 2.2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .ledger-quote {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.25rem;
+      color: var(--bone);
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    .ledger-meta {
+      font-size: 0.78rem;
+      color: var(--ash);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* 3. The Interactive Ofrenda */
+    .ofrenda-wrap {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      padding: 2.2rem;
+      position: relative;
+    }
+
+    .ofrenda-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 1.2rem;
+    }
+
+    .agarbatti-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.8rem;
+      color: var(--bone-dim);
+    }
+
+    .incense-stick-svg {
+      width: 18px;
+      height: 28px;
+      overflow: visible;
+    }
+
+    .view-toggle-group { display: flex; gap: 0.5rem; }
+
+    .toggle-btn {
+      background: transparent;
+      color: var(--ash);
+      border: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .toggle-btn.active {
+      color: var(--marigold);
+      border-color: var(--border-marigold);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    /* Ghost Gallery Cards */
+    .ghost-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .ghost-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 1.6rem;
+      position: relative;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      outline: none;
+      text-align: left;
+    }
+
+    .ghost-card:hover,
+    .ghost-card:focus-within {
+      border-color: var(--marigold);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 16px var(--glow);
+    }
+
+    .ghost-card.at-peace {
+      border-color: #27272a;
+      opacity: 0.65;
+      background: #0f0d0b;
+    }
+
+    .ghost-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.2rem;
+    }
+
+    .calavera-spirit {
+      width: 44px;
+      height: 48px;
+      animation: ghostPlume 5s ease-in-out infinite alternate;
+    }
+
+    .ghost-card:nth-child(2) .calavera-spirit { animation-delay: -1.8s; }
+    .ghost-card:nth-child(3) .calavera-spirit { animation-delay: -3.2s; }
+
+    @keyframes ghostPlume {
+      0% { transform: translateY(0) rotate(-2deg) scale(1); opacity: 0.85; }
+      50% { transform: translateY(-4px) rotate(2deg) scale(1.02); opacity: 1; }
+      100% { transform: translateY(-7px) rotate(-1deg) scale(0.98); opacity: 0.9; }
+    }
+
+    .ghost-card.at-peace .calavera-spirit {
+      animation: none;
+      filter: grayscale(1) opacity(0.4);
+    }
+
+    .ghost-days-badge {
+      font-size: 0.74rem;
+      color: var(--marigold);
+      background: rgba(245, 158, 11, 0.08);
+      padding: 0.25rem 0.55rem;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    .ghost-card.at-peace .ghost-days-badge {
+      color: var(--ash);
+      border-color: #3f3f46;
+      background: transparent;
+    }
+
+    .ghost-quote {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      color: var(--bone);
+      line-height: 1.45;
+      margin-bottom: 1.2rem;
+    }
+
+    .ghost-card.at-peace .ghost-quote {
+      text-decoration: line-through;
+      color: var(--ash);
+    }
+
+    .ghost-footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px dashed var(--border-subtle);
+      padding-top: 0.9rem;
+      font-size: 0.78rem;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .ghost-action-btns {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .diya-btn {
+      background: transparent;
+      border: 1px solid var(--border-marigold);
+      color: var(--marigold);
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.15s ease;
+    }
+
+    .diya-btn:hover {
+      background: var(--marigold);
+      color: #120e0a;
+    }
+
+    .diya-btn:disabled {
+      border-color: #3f3f46;
+      color: var(--ash);
+      cursor: not-allowed;
+      background: transparent;
+    }
+
+    .apology-trigger-btn {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--bone-dim);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .apology-trigger-btn:hover {
+      border-color: var(--bone);
+      color: var(--bone);
+    }
+
+    /* Interactive Séance Replay Button */
+    .seance-replay-btn {
+      background: transparent;
+      border: 1px solid var(--border-marigold);
+      color: var(--marigold-bright);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.35rem 0.55rem;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .seance-replay-btn:hover {
+      background: rgba(245, 158, 11, 0.15);
+    }
+
+    .candle-icon-mini {
+      width: 14px;
+      height: 16px;
+      display: inline-block;
+    }
+
+    /* Interactive Séance Chat Replay Theater Modal */
+    .seance-theater {
+      margin-top: 2rem;
+      background: #0b0907;
+      border: 1px solid var(--border-marigold);
+      padding: 1.8rem;
+      display: none;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+    }
+
+    .seance-theater.active {
+      display: block;
+      animation: writeIn 0.3s ease-out;
+    }
+
+    .theater-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      border-bottom: 1px dashed var(--border-subtle);
+      padding-bottom: 0.6rem;
+      font-size: 0.78rem;
+      color: var(--marigold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .chat-bubble-stream {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      max-width: 580px;
+      margin-bottom: 1.2rem;
+    }
+
+    .bubble-line {
+      padding: 0.75rem 1rem;
+      font-size: 0.88rem;
+      max-width: 80%;
+      line-height: 1.45;
+    }
+
+    .bubble-friend {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      align-self: flex-start;
+      color: var(--bone-dim);
+    }
+
+    .bubble-self {
+      background: #24190e;
+      border: 1px solid var(--border-marigold);
+      align-self: flex-end;
+      color: var(--marigold-bright);
+    }
+
+    .timelapse-counter-badge {
+      font-size: 1.35rem;
+      font-family: var(--font-display);
+      color: var(--marigold);
+      padding: 0.6rem 0;
+      text-align: center;
+      border-top: 1px dashed var(--border-subtle);
+      border-bottom: 1px dashed var(--border-subtle);
+      margin-bottom: 1rem;
+    }
+
+    /* Maafi-nama / Apology Drafter Card */
+    .apology-card {
+      margin-top: 2rem;
+      background: #100d0a;
+      border: 1px solid var(--border-marigold);
+      padding: 1.6rem 2rem;
+      display: none;
+      position: relative;
+    }
+
+    .apology-card.active {
+      display: block;
+      animation: writeIn 0.3s ease-out;
+    }
+
+    .apology-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+      font-size: 0.75rem;
+      color: var(--marigold);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .apology-text-box {
+      background: var(--bg);
+      border: 1px solid var(--border-subtle);
+      padding: 1rem 1.2rem;
+      font-family: var(--font-hand);
+      font-size: 1.15rem;
+      color: var(--bone);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .apology-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .copy-apology-btn {
+      background: var(--marigold);
+      color: #070605;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: none;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+
+    .copy-apology-btn:hover { background: var(--marigold-bright); }
+
+    /* Mukti Receipt Modal / Drawer */
+    .receipt-box {
+      margin-top: 2rem;
+      background: #0d0b09;
+      border: 1px solid var(--border-marigold);
+      padding: 1.6rem 2rem;
+      display: none;
+      position: relative;
+    }
+
+    .receipt-box.active {
+      display: block;
+      animation: writeIn 0.3s ease-out;
+    }
+
+    @keyframes writeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .receipt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed var(--border-subtle);
+      padding-bottom: 0.6rem;
+      margin-bottom: 1rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--marigold);
+    }
+
+    .receipt-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--bone);
+      margin-bottom: 0.5rem;
+    }
+
+    .receipt-body {
+      font-size: 0.88rem;
+      color: var(--bone-dim);
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+
+    .receipt-stamp {
+      font-size: 0.75rem;
+      color: var(--marigold);
+      font-weight: 700;
+      border: 1px solid var(--marigold);
+      padding: 0.3rem 0.7rem;
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Terminal Inspector View */
+    .terminal-view {
+      display: none;
+      background: #090807;
+      border: 1px solid var(--border-subtle);
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #a8a29e;
+      overflow-x: auto;
+      line-height: 1.7;
+    }
+
+    .terminal-view.active {
+      display: block;
+      animation: writeIn 0.25s ease-out;
+    }
+
+    .term-cmd { color: var(--marigold); }
+    .term-dim { color: #57534e; }
+    .term-alert { color: var(--marigold-bright); }
+    .term-success { color: #4ade80; }
+
+    /* In-Browser Dropzone */
+    .dropzone-box {
+      margin-top: 2.5rem;
+      background: var(--bg-elevated);
+      border: 2px dashed var(--border-marigold);
+      padding: 2.2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .dropzone-box:hover,
+    .dropzone-box.drag-over {
+      background: #241c14;
+      border-color: var(--marigold-bright);
+    }
+
+    .dropzone-title {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      color: var(--bone);
+      margin-bottom: 0.5rem;
+    }
+
+    .dropzone-sub {
+      font-size: 0.85rem;
+      color: var(--bone-dim);
+      max-width: 540px;
+      margin: 0 auto 1.2rem;
+      line-height: 1.6;
+    }
+
+    .dropzone-btn {
+      background: transparent;
+      border: 1px solid var(--marigold);
+      color: var(--marigold);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      padding: 0.6rem 1.4rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dropzone-btn:hover {
+      background: var(--marigold);
+      color: #120e0a;
+    }
+
+    #dropFileInput { display: none; }
+
+    /* Interactive Ghost Summoner / Playground */
+    .summoner-box {
+      margin-top: 2rem;
+      background: #110e0b;
+      border: 1px solid var(--border-subtle);
+      padding: 2rem;
+    }
+
+    .summoner-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: var(--bone);
+      margin-bottom: 0.5rem;
+    }
+
+    .summoner-sub {
+      font-size: 0.82rem;
+      color: var(--ash);
+      margin-bottom: 1.2rem;
+    }
+
+    .summoner-input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    @media (min-width: 640px) {
+      .summoner-input-row { flex-direction: row; }
+    }
+
+    .summoner-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border-subtle);
+      color: var(--bone);
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      padding: 0.8rem 1rem;
+      outline: none;
+    }
+
+    .summoner-input:focus { border-color: var(--marigold); }
+
+    .summoner-btn {
+      background: var(--border-subtle);
+      color: var(--marigold);
+      border: 1px solid var(--marigold);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.8rem 1.4rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .summoner-btn:hover {
+      background: var(--marigold);
+      color: #100b07;
+    }
+
+    .summon-result {
+      margin-top: 1.2rem;
+      padding: 1rem;
+      background: var(--bg-surface);
+      border-left: 2px solid var(--marigold);
+      font-size: 0.85rem;
+      color: var(--bone-dim);
+      display: none;
+    }
+
+    .summon-result.active {
+      display: block;
+      animation: writeIn 0.2s ease-out;
+    }
+
+    /* 4. Anatomy of an Excuse & Conversational Debt */
+    .debt-meter-bar {
+      margin-top: 2rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      padding: 1.6rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .debt-meter-stat {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      color: var(--marigold);
+      font-weight: 700;
+    }
+
+    .debt-meter-desc {
+      font-size: 0.85rem;
+      color: var(--bone-dim);
+      max-width: 480px;
+    }
+
+    .ledger-breakdown {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .ledger-breakdown { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .breakdown-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      padding: 1.6rem;
+    }
+
+    .breakdown-pct {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--marigold);
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .breakdown-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--bone);
+      margin-bottom: 0.4rem;
+    }
+
+    .breakdown-sub {
+      font-size: 0.78rem;
+      color: var(--ash);
+      line-height: 1.5;
+    }
+
+    /* 5. How it works: A trail path */
+    .trail-container {
+      position: relative;
+      margin-top: 3rem;
+      padding-left: 2.2rem;
+    }
+
+    .trail-line {
+      position: absolute;
+      top: 1rem;
+      bottom: 2rem;
+      left: 7px;
+      width: 2px;
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--marigold) 0,
+        var(--marigold) 6px,
+        transparent 6px,
+        transparent 14px
+      );
+    }
+
+    .trail-step {
+      position: relative;
+      margin-bottom: 3.5rem;
+      max-width: 680px;
+    }
+
+    .trail-step:last-child { margin-bottom: 0; }
+
+    .step-marker {
+      position: absolute;
+      left: -2.2rem;
+      top: 0.2rem;
+      width: 16px;
+      height: 16px;
+      background: var(--bg);
+      border: 2px solid var(--marigold);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--marigold);
+    }
+
+    .step-num {
+      font-size: 0.72rem;
+      color: var(--marigold);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 0.35rem;
+    }
+
+    .step-name {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      color: var(--bone);
+      margin-bottom: 0.6rem;
+    }
+
+    .step-detail {
+      font-size: 0.92rem;
+      color: var(--bone-dim);
+      line-height: 1.7;
+    }
+
+    /* 6. Why open, not cloud */
+    .blunt-reasons {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    @media (min-width: 860px) {
+      .blunt-reasons { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    .blunt-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      padding: 2rem 1.75rem;
+      position: relative;
+    }
+
+    .blunt-card:nth-child(1) { border-top: 2px solid var(--marigold); }
+    .blunt-card:nth-child(2) { border-top: 2px solid var(--marigold-deep); }
+    .blunt-card:nth-child(3) { border-top: 2px solid var(--bone-dim); }
+
+    .blunt-index {
+      font-size: 0.72rem;
+      color: var(--ash);
+      margin-bottom: 1rem;
+    }
+
+    .blunt-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: var(--bone);
+      margin-bottom: 0.85rem;
+      line-height: 1.35;
+    }
+
+    .blunt-text {
+      font-size: 0.88rem;
+      color: var(--bone-dim);
+      line-height: 1.7;
+    }
+
+    /* 7. Numbers and honesty */
+    .honesty-wrap {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      padding: 2.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .honesty-wrap { grid-template-columns: 1fr 1.3fr; }
+    }
+
+    .stat-lockup {
+      border-right: none;
+      padding-right: 0;
+    }
+
+    @media (min-width: 768px) {
+      .stat-lockup {
+        border-right: 1px solid var(--border-subtle);
+        padding-right: 2rem;
+      }
+    }
+
+    .accuracy-big {
+      font-family: var(--font-display);
+      font-size: clamp(3.5rem, 6vw, 5.5rem);
+      font-weight: 800;
+      color: var(--marigold);
+      line-height: 0.9;
+      margin-bottom: 0.5rem;
+    }
+
+    .accuracy-label {
+      font-size: 0.85rem;
+      color: var(--bone);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.4rem;
+    }
+
+    .accuracy-sub {
+      font-size: 0.78rem;
+      color: var(--ash);
+    }
+
+    .flaw-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .flaw-badge {
+      font-size: 0.72rem;
+      color: #f87171;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 0.75rem;
+    }
+
+    .flaw-heading {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: var(--bone);
+      margin-bottom: 0.75rem;
+    }
+
+    .flaw-text {
+      font-size: 0.9rem;
+      color: var(--bone-dim);
+      line-height: 1.7;
+    }
+
+    /* Footer with Terracotta Diya Vigil */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 4rem 0 5rem;
+      margin-top: 2rem;
+    }
+
+    .footer-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    @media (min-width: 680px) {
+      .footer-content {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+    }
+
+    .footer-left { max-width: 480px; }
+
+    .footer-tagline {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-style: italic;
+      color: var(--bone);
+      margin-bottom: 0.8rem;
+    }
+
+    .footer-sub {
+      font-size: 0.8rem;
+      color: var(--ash);
+    }
+
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      font-size: 0.85rem;
+    }
+
+    .footer-links a {
+      color: var(--marigold);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--marigold);
+      width: fit-content;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover,
+    .footer-links a:focus-visible {
+      color: var(--marigold-bright);
+      outline: none;
+    }
+
+    /* Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      #petalsCanvas { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Wall Whispers hidden in background soot, illuminated by torchlight -->
+  <div class="wall-whisper" style="top: 18%; left: 8%; transform: rotate(-5deg);" aria-hidden="true">kal pakka bhejunga...</div>
+  <div class="wall-whisper" style="top: 36%; right: 6%; transform: rotate(4deg);" aria-hidden="true">two minutes, sending now...</div>
+  <div class="wall-whisper" style="top: 62%; left: 4%; transform: rotate(-3deg);" aria-hidden="true">reviewing before midnight...</div>
+  <div class="wall-whisper" style="top: 84%; right: 9%; transform: rotate(6deg);" aria-hidden="true">weekend pe chai meri taraf se...</div>
+
+  <!-- Floating Marigold & Ember Canvas -->
+  <canvas id="petalsCanvas" aria-hidden="true"></canvas>
+
+  <!-- Interactive Torchlight Effect -->
+  <div id="torchlight" aria-hidden="true"></div>
+
+  <!-- Minimal Golden Scallop Border -->
+  <div class="papel-minimal-border" aria-hidden="true">
+    <svg viewBox="0 0 1200 12" preserveAspectRatio="none">
+      <path d="M0,0 L1200,0 L1200,3 Q1185,11 1170,3 Q1155,11 1140,3 Q1125,11 1110,3 Q1095,11 1080,3 Q1065,11 1050,3 Q1035,11 1020,3 Q1005,11 990,3 Q975,11 960,3 Q945,11 930,3 Q915,11 900,3 Q885,11 870,3 Q855,11 840,3 Q825,11 810,3 Q795,11 780,3 Q765,11 750,3 Q735,11 720,3 Q705,11 690,3 Q675,11 660,3 Q645,11 630,3 Q615,11 600,3 Q585,11 570,3 Q555,11 540,3 Q525,11 510,3 Q495,11 480,3 Q465,11 450,3 Q435,11 420,3 Q405,11 390,3 Q375,11 360,3 Q345,11 330,3 Q315,11 300,3 Q285,11 270,3 Q255,11 240,3 Q225,11 210,3 Q195,11 180,3 Q165,11 150,3 Q135,11 120,3 Q105,11 90,3 Q75,11 60,3 Q45,11 30,3 Q15,11 0,3 Z"/>
+    </svg>
+  </div>
+
+  <div class="layout-frame">
+
+    <!-- Header with Terracotta Diya Flame -->
+    <header>
+      <a href="#" class="site-tag">
+        <svg class="header-diya" viewBox="0 0 24 24" aria-hidden="true">
+          <ellipse cx="12" cy="18" rx="8" ry="4" fill="#854d0e"/>
+          <ellipse cx="12" cy="17" rx="7" ry="2.5" fill="#f59e0b" opacity="0.4"/>
+          <path d="M12 5 Q14.5 10 13.5 14 Q12 16.5 10.5 14 Q9.5 10 12 5 Z" fill="#fbbf24">
+            <animate attributeName="d" values="M12 5 Q14.5 10 13.5 14 Q12 16.5 10.5 14 Q9.5 10 12 5 Z; M12 4 Q15 9.5 14 14 Q12 17 10 14 Q9 9.5 12 4 Z; M12 5 Q14.5 10 13.5 14 Q12 16.5 10.5 14 Q9.5 10 12 5 Z" dur="1.8s" repeatCount="indefinite"/>
+          </path>
+          <ellipse cx="12" cy="12" rx="1.5" ry="3" fill="#fff7ed"/>
+        </svg>
+        <span>Ghost Threads</span>
+      </a>
+      <div class="header-controls">
+        <button type="button" class="sound-toggle-btn" id="soundToggle" title="Toggle 2am ambient candle crackle and rain">
+          <span id="soundIcon">&#9834;</span>
+          <span id="soundLabel">Sound: Off</span>
+        </button>
+        <span class="status-badge">Offline Gemma + TabPFN</span>
+        <span class="status-badge highlight">0 API Keys</span>
+      </div>
+    </header>
+
+    <!-- 1. Hero -->
+    <main>
+      <section class="hero" style="border-top: none;">
+        <div class="hero-lead-col">
+          <div class="hero-kicker">Local audit / no cloud</div>
+          <h1 class="hero-title">
+            47 things I said I'd do.<br>
+            <span class="accent">I did none of them.</span>
+          </h1>
+          <p class="hero-desc">
+            A small offline script that digests your private chat exports, spots promises that vanished into thin air, and gives each restless line an ofrenda.
+          </p>
+          <div class="cta-row">
+            <a href="#ofrenda" class="btn-marigold">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+              <span>Bhoot dikhao</span>
+            </a>
+            <span class="cta-subtext">Zero cloud calls. Runs entirely on your machine.</span>
+          </div>
+        </div>
+
+        <div class="hero-anchor-box">
+          <svg class="hero-spirit-silhouette" viewBox="0 0 48 56" aria-hidden="true">
+            <path d="M24 4 C14 4 8 12 8 24 C8 38 4 48 10 49 C14 50 17 44 24 44 C31 44 34 50 38 49 C44 48 40 38 40 24 C40 12 34 4 24 4 Z" fill="rgba(245, 158, 11, 0.12)" stroke="#f59e0b" stroke-width="1.5"/>
+            <ellipse cx="18" cy="20" rx="3.5" ry="4.5" fill="#070605"/>
+            <ellipse cx="30" cy="20" rx="3.5" ry="4.5" fill="#070605"/>
+            <circle class="pupil-eye" cx="18" cy="21" r="1.5" fill="#fbbf24"/>
+            <circle class="pupil-eye" cx="30" cy="21" r="1.5" fill="#fbbf24"/>
+            <circle cx="24" cy="11" r="1.8" fill="#f59e0b"/>
+            <path d="M24 26 L23 29 L25 29 Z" fill="#070605"/>
+            <path d="M19 34 Q24 36 29 34 M21 33 L21 36 M24 33 L24 37 M27 33 L27 36" stroke="#f59e0b" stroke-width="1.2" fill="none"/>
+          </svg>
+
+          <div class="hero-big-stat">412<span>d</span></div>
+          <div class="hero-stat-label">Oldest ghost found</div>
+          <span class="live-ticker" id="liveTicker">412 days, 14 hours, 28 minutes cold</span>
+          <p class="hero-stat-detail">
+            "I'll review the pull request before midnight." A message from 412 days ago with zero commits that night.
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. The night it started -->
+      <section id="story">
+        <span class="section-eyebrow">Origin</span>
+        <h2 class="section-headline">The night it started</h2>
+        
+        <div class="story-grid">
+          <div class="story-prose">
+            <p>
+              It was 2am on a rainy Tuesday in <span class="todo-pill">[TODO: your city or room]</span>. I was searching through <span class="todo-pill">[TODO: chat name or friend]</span> for a link someone had sent me months ago.
+            </p>
+            <p>
+              Instead of the link, I kept bumping into my own words: "will review tonight", "sending the draft by afternoon", "call you in ten minutes".
+            </p>
+            <p>
+              Nobody was mad. No one followed up. The conversations simply kept moving until the promises evaporated into polite static.
+            </p>
+            <p>
+              That quiet decay felt worse than an actual argument. So I pulled my wifi, dumped two years of text logs onto my drive, and built a scanner to hold myself to account.
+            </p>
+          </div>
+
+          <aside class="ledger-aside">
+            <div class="ledger-quote">
+              "We stop chasing people who break small promises. We just quietly lower our expectations until the thread dies."
+            </div>
+            <div class="ledger-meta">
+              Logged note / 2 years of chats / 47 unkept promises
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 3. The Ghosts: Interactive Ofrenda with Séance Replay & Living Eyes -->
+      <section id="ofrenda">
+        <span class="section-eyebrow">Interactive Altar</span>
+        <h2 class="section-headline">Restless spirits from my archive</h2>
+        
+        <div class="ofrenda-wrap">
+          <div class="ofrenda-controls">
+            <div class="agarbatti-badge">
+              <svg class="incense-stick-svg" viewBox="0 0 24 32" aria-hidden="true">
+                <line x1="8" y1="30" x2="16" y2="10" stroke="#854d0e" stroke-width="2"/>
+                <circle cx="16" cy="10" r="2.5" fill="#ea580c">
+                  <animate attributeName="fill" values="#ea580c;#f97316;#ef4444;#ea580c" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                <path d="M16 9 Q18 5 15 2 Q13 0 17 -4" stroke="#a8a29e" stroke-width="1" fill="none" opacity="0.6">
+                  <animate attributeName="d" values="M16 9 Q18 5 15 2 Q13 0 17 -4; M16 9 Q14 5 17 2 Q19 0 15 -4; M16 9 Q18 5 15 2 Q13 0 17 -4" dur="3s" repeatCount="indefinite"/>
+                </path>
+              </svg>
+              <span>Incense burning &bull; Ghost eyes softly track your cursor</span>
+            </div>
+            <div class="view-toggle-group">
+              <button type="button" class="toggle-btn active" id="btnViewVisual">Altar View</button>
+              <button type="button" class="toggle-btn" id="btnViewCLI">Local CLI Log</button>
+            </div>
+          </div>
+
+          <!-- Visual Altar View with Calavera Spirits -->
+          <div id="visualAltar">
+            <div class="ghost-gallery" id="ghostGallery" role="region" aria-label="Unkept promises list">
+              <!-- Ghost 1 -->
+              <div class="ghost-card" id="card-1">
+                <div class="ghost-top">
+                  <svg class="calavera-spirit" viewBox="0 0 44 48" aria-hidden="true">
+                    <path d="M22 3 C13 3 7 10 7 20 C7 32 3 40 8 41 C12 42 15 36 22 36 C29 36 32 42 36 41 C41 40 37 32 37 20 C37 10 31 3 22 3 Z" fill="rgba(245, 158, 11, 0.08)" stroke="#f59e0b" stroke-width="1.4"/>
+                    <ellipse cx="16" cy="17" rx="3" ry="4" fill="#070605"/>
+                    <ellipse cx="28" cy="17" rx="3" ry="4" fill="#070605"/>
+                    <circle class="pupil-eye" cx="16" cy="18" r="1.3" fill="#fbbf24"/>
+                    <circle class="pupil-eye" cx="28" cy="18" r="1.3" fill="#fbbf24"/>
+                    <circle cx="22" cy="9" r="1.8" fill="#f59e0b"/>
+                    <path d="M17 29 Q22 31 27 29 M19 28 L19 31 M22 28 L22 32 M25 28 L25 31" stroke="#f59e0b" stroke-width="1" fill="none"/>
+                  </svg>
+                  <span class="ghost-days-badge">412 days cold</span>
+                </div>
+                <div class="ghost-quote">"I'll review the pull request before midnight."</div>
+                <button type="button" class="seance-replay-btn" onclick="startSeanceReplay('Alex', 'Hey, saw the pull request. Can you look before merging?', 'I\'ll review the pull request before midnight.', 412, 'No review was ever filed. Pull request merged by Alex 3 days later without comments.')">
+                  <span>&#x25B6;</span>
+                  <span>Séance: Watch ghost be born</span>
+                </button>
+                <div class="ghost-footer-row">
+                  <span style="color: var(--ash);">GitHub ping</span>
+                  <div class="ghost-action-btns">
+                    <button type="button" class="apology-trigger-btn" onclick="openApology('Alex', 'I\'ll review the pull request before midnight.', 412, 'I never reviewed your pull request and you had to merge it yourself 3 days later. Truly sorry for dropping the ball on that. Sending this so the ghost leaves me alone.')">
+                      Maafi-nama
+                    </button>
+                    <button type="button" class="diya-btn" onclick="releaseGhost('card-1', 'I\'ll review the pull request before midnight.', 412, 'PR merged without review. Apology text sent.')">
+                      <svg class="candle-icon-mini" viewBox="0 0 16 18" aria-hidden="true">
+                        <rect x="5" y="8" width="6" height="9" rx="1" fill="#c5baa6"/>
+                        <path d="M8 2 Q10 5 9 7 Q8 8.5 7 7 Q6 5 8 2 Z" fill="#fbbf24"/>
+                      </svg>
+                      <span>Diya jalao</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ghost 2 -->
+              <div class="ghost-card" id="card-2">
+                <div class="ghost-top">
+                  <svg class="calavera-spirit" viewBox="0 0 44 48" aria-hidden="true">
+                    <path d="M22 3 C12 3 6 11 6 22 C6 35 2 44 9 44 C15 44 16 37 22 37 C27 37 29 44 35 44 C41 44 38 35 38 22 C38 11 32 3 22 3 Z" fill="rgba(245, 158, 11, 0.08)" stroke="#f59e0b" stroke-width="1.4"/>
+                    <ellipse cx="16" cy="18" rx="3.2" ry="4" fill="#070605"/>
+                    <ellipse cx="28" cy="18" rx="3.2" ry="4" fill="#070605"/>
+                    <circle class="pupil-eye" cx="16" cy="19" r="1.4" fill="#fbbf24"/>
+                    <circle class="pupil-eye" cx="28" cy="19" r="1.4" fill="#fbbf24"/>
+                    <path d="M22 10 Q24 7 26 10 Q24 13 22 10 Z" fill="#ea580c"/>
+                    <path d="M18 30 Q22 32 26 30" stroke="#f59e0b" stroke-width="1.2" fill="none"/>
+                  </svg>
+                  <span class="ghost-days-badge">189 days cold</span>
+                </div>
+                <div class="ghost-quote">"Will send you the portfolio contact tomorrow morning."</div>
+                <button type="button" class="seance-replay-btn" onclick="startSeanceReplay('Rohan', 'Do you have that design lead info you mentioned?', 'Will send you the portfolio contact tomorrow morning.', 189, 'Thread froze. Rohan found another lead 2 weeks later. Debt was never settled.')">
+                  <span>&#x25B6;</span>
+                  <span>Séance: Watch ghost be born</span>
+                </button>
+                <div class="ghost-footer-row">
+                  <span style="color: var(--ash);">Peer DM</span>
+                  <div class="ghost-action-btns">
+                    <button type="button" class="apology-trigger-btn" onclick="openApology('Rohan', 'Will send you the portfolio contact tomorrow morning.', 189, 'Hey, I said I would forward that designer contact 189 days ago and then completely spaced on it. Hope you found what you needed back then, my apologies for ghosting.')">
+                      Maafi-nama
+                    </button>
+                    <button type="button" class="diya-btn" onclick="releaseGhost('card-2', 'Will send you the portfolio contact tomorrow morning.', 189, 'Contact finally shared after half a year.')">
+                      <svg class="candle-icon-mini" viewBox="0 0 16 18" aria-hidden="true">
+                        <rect x="5" y="8" width="6" height="9" rx="1" fill="#c5baa6"/>
+                        <path d="M8 2 Q10 5 9 7 Q8 8.5 7 7 Q6 5 8 2 Z" fill="#fbbf24"/>
+                      </svg>
+                      <span>Diya jalao</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ghost 3 -->
+              <div class="ghost-card" id="card-3">
+                <div class="ghost-top">
+                  <svg class="calavera-spirit" viewBox="0 0 44 48" aria-hidden="true">
+                    <path d="M22 3 C14 3 8 10 8 21 C8 34 5 43 11 43 C16 43 18 38 22 38 C26 38 28 43 33 43 C39 43 36 34 36 21 C36 10 30 3 22 3 Z" fill="rgba(245, 158, 11, 0.08)" stroke="#f59e0b" stroke-width="1.4"/>
+                    <ellipse cx="16" cy="17" rx="3" ry="3.8" fill="#070605"/>
+                    <ellipse cx="28" cy="17" rx="3" ry="3.8" fill="#070605"/>
+                    <circle class="pupil-eye" cx="16" cy="18" r="1.2" fill="#fbbf24"/>
+                    <circle class="pupil-eye" cx="28" cy="18" r="1.2" fill="#fbbf24"/>
+                    <circle cx="22" cy="11" r="1.8" fill="#f59e0b"/>
+                    <path d="M19 28 Q22 30 25 28" stroke="#f59e0b" stroke-width="1" fill="none"/>
+                  </svg>
+                  <span class="ghost-days-badge">73 days cold</span>
+                </div>
+                <div class="ghost-quote">"Let us catch up this weekend for sure, chai on me."</div>
+                <button type="button" class="seance-replay-btn" onclick="startSeanceReplay('Priyesh', 'Long time no see, are you in town this week?', 'Let us catch up this weekend for sure, chai on me.', 73, 'Weekend came and went. Marked with a thumbs up and never spoken of again.')">
+                  <span>&#x25B6;</span>
+                  <span>Séance: Watch ghost be born</span>
+                </button>
+                <div class="ghost-footer-row">
+                  <span style="color: var(--ash);">WhatsApp group</span>
+                  <div class="ghost-action-btns">
+                    <button type="button" class="apology-trigger-btn" onclick="openApology('Priyesh', 'Let us catch up this weekend for sure, chai on me.', 73, 'Bhai, 73 din pehle chai ka vaada kiya tha aur gayab ho gaya. Next week pakka chai meri taraf se, ya UPI bhej raha hoon.')">
+                      Maafi-nama
+                    </button>
+                    <button type="button" class="diya-btn" onclick="releaseGhost('card-3', 'Let us catch up this weekend for sure, chai on me.', 73, 'Sent payment for tea over UPI to clear conscience.')">
+                      <svg class="candle-icon-mini" viewBox="0 0 16 18" aria-hidden="true">
+                        <rect x="5" y="8" width="6" height="9" rx="1" fill="#c5baa6"/>
+                        <path d="M8 2 Q10 5 9 7 Q8 8.5 7 7 Q6 5 8 2 Z" fill="#fbbf24"/>
+                      </svg>
+                      <span>Diya jalao</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interactive Séance Replay Theater Box -->
+            <div class="seance-theater" id="seanceTheater">
+              <div class="theater-bar">
+                <span>Ghost Birth Séance // Archive Replay</span>
+                <button type="button" style="background:transparent; border:none; color:var(--ash); cursor:pointer;" onclick="closeSeanceTheater()">[Close]</button>
+              </div>
+              <div class="chat-bubble-stream" id="bubbleStream">
+                <!-- Bubbles injected here -->
+              </div>
+              <div class="timelapse-counter-badge" id="timelapseCounter">
+                Spinning clock: Day 0 to Day 412...
+              </div>
+              <p style="font-size: 0.85rem; color: var(--bone-dim); font-style: italic;" id="seanceVerdict"></p>
+            </div>
+
+            <!-- Maafi-nama Draft Card -->
+            <div class="apology-card" id="apologyCard">
+              <div class="apology-header">
+                <span>Maafi-nama // Honest Apology Draft</span>
+                <span id="apologyTarget">Target: Alex</span>
+              </div>
+              <div class="apology-text-box" id="apologyText">
+                Hey Alex, I found this message from 412 days ago where I said I'd review your PR. Obviously I never did, and you had to merge it yourself. I'm sorry for dropping the ball. Sending this so the ghost leaves me alone.
+              </div>
+              <div class="apology-actions">
+                <span style="font-size: 0.78rem; color: var(--ash);">Send this directly on WhatsApp or chat to settle the conversational debt.</span>
+                <button type="button" class="copy-apology-btn" id="btnCopyApology" onclick="copyApologyText()">Copy text</button>
+              </div>
+            </div>
+
+            <!-- Mukti Receipt Box -->
+            <div class="receipt-box" id="receiptBox">
+              <div class="receipt-header">
+                <span>Mukti Pramaan Patra</span>
+                <span id="receiptNumber">Record #0047</span>
+              </div>
+              <h4 class="receipt-title" id="receiptQuote">"I'll review the pull request before midnight."</h4>
+              <p class="receipt-body" id="receiptText">
+                Haunted this ledger for 412 days. Diya lit on the altar. Debt marked as forgiven.
+              </p>
+              <div class="receipt-stamp">Status: Mukti Prapt (Released)</div>
+            </div>
+          </div>
+
+          <!-- Raw CLI Log Inspector View -->
+          <div class="terminal-view" id="cliView" role="region" aria-label="Command line logs">
+            <span class="term-dim"># Terminal execution on local machine (wifi disconnected)</span><br>
+            <span class="term-cmd">$ python ghost_threads.py --source ./chats/2024-export.txt --ollama-host localhost:11434</span><br>
+            <span class="term-dim">[02:14:02]</span> Loaded 32,840 lines from local disk. Zero packets emitted.<br>
+            <span class="term-dim">[02:14:05]</span> Connecting to Ollama (gemma2:2b weights loaded in RAM: 2.1GB)...<br>
+            <span class="term-dim">[02:14:09]</span> <span class="term-alert">[PROMISE_DETECTED]</span> index: 4819 | sender: "me"<br>
+            &nbsp;&nbsp;verbatim: "I'll review the pull request before midnight."<br>
+            &nbsp;&nbsp;temporal_anchor: "before midnight"<br>
+            <span class="term-dim">[02:14:10]</span> Running TabPFN tabular classifier against follow-up logs...<br>
+            &nbsp;&nbsp;timestamp_gap: 412.3 days<br>
+            &nbsp;&nbsp;resolution_signal_found: False<br>
+            &nbsp;&nbsp;<span class="term-alert">ghost_verdict: RESTLESS_SPIRIT (rank #1 / 47)</span><br>
+            <span class="term-dim">[02:14:12]</span> <span class="term-success">[DONE]</span> 47 ghosts materialized on local altar.<br>
+          </div>
+
+          <!-- In-Browser File Dropzone -->
+          <div class="dropzone-box" id="dropzone" onclick="document.getElementById('dropFileInput').click()">
+            <input type="file" id="dropFileInput" accept=".txt,.json">
+            <h3 class="dropzone-title">Drop your chat export file here</h3>
+            <p class="dropzone-sub">
+              Drag and drop any raw WhatsApp, Signal, or text chat export (.txt). It parses right inside your browser memory with zero network requests.
+            </p>
+            <button type="button" class="dropzone-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Select local .txt file</span>
+            </button>
+          </div>
+
+          <!-- Interactive Summoner Simulator -->
+          <div class="summoner-box">
+            <div class="summoner-title">Test a promise you made recently</div>
+            <p class="summoner-sub">Type a commitment you told someone this week. See how local Gemma tags it.</p>
+            <div class="summoner-input-row">
+              <input type="text" id="customPromiseInput" class="summoner-input" placeholder="e.g. kal pakka bhej dunga, pakka" value="kal sham tak slide deck bhejta hoon">
+              <button type="button" class="summoner-btn" onclick="summonTestGhost()">Bhoot jaanch karo</button>
+            </div>
+            <div class="summon-result" id="summonResult"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Anatomy of an Excuse & Conversational Debt -->
+      <section id="anatomy">
+        <span class="section-eyebrow">Hisaab-kitaab</span>
+        <h2 class="section-headline">Anatomy of the 47 unkept promises</h2>
+
+        <!-- Total Debt Meter Bar -->
+        <div class="debt-meter-bar">
+          <div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ash); margin-bottom: 0.3rem;">Accumulated Conversational Debt</div>
+            <div class="debt-meter-stat">8,554 days</div>
+          </div>
+          <p class="debt-meter-desc">
+            The combined time these 47 ghosts have lingered in the archive since the original promises were made without follow-through.
+          </p>
+        </div>
+        
+        <div class="ledger-breakdown">
+          <div class="breakdown-card">
+            <div class="breakdown-pct">62%</div>
+            <div class="breakdown-title">"Kal pakka" delays</div>
+            <p class="breakdown-sub">
+              Short-term postponements meant to buy 24 hours of peace that quietly turned into permanent radio silence.
+            </p>
+          </div>
+
+          <div class="breakdown-card">
+            <div class="breakdown-pct">24%</div>
+            <div class="breakdown-title">"Weekend pe pakka"</div>
+            <p class="breakdown-sub">
+              Vague social commitments made under mild social pressure, forgotten before Saturday morning arrived.
+            </p>
+          </div>
+
+          <div class="breakdown-card">
+            <div class="breakdown-pct">14%</div>
+            <div class="breakdown-title">"Checking this right now"</div>
+            <p class="breakdown-sub">
+              Messages typed while opening an email tab, instantly derailed by an incoming Slack notification.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. How it works: A trail path -->
+      <section id="how-it-works">
+        <span class="section-eyebrow">Architecture</span>
+        <h2 class="section-headline">The path from raw chat export to resting spirit</h2>
+        
+        <div class="trail-container">
+          <div class="trail-line" aria-hidden="true"></div>
+
+          <div class="trail-step">
+            <div class="step-marker" aria-hidden="true"></div>
+            <div class="step-num">Step 01</div>
+            <h3 class="step-name">Local archive intake</h3>
+            <p class="step-detail">
+              Drop plain text or JSON exports straight from Signal, Telegram, or WhatsApp into a local folder. No tokenization on remote servers, no telemetry, and no sign-up forms.
+            </p>
+          </div>
+
+          <div class="trail-step">
+            <div class="step-marker" aria-hidden="true"></div>
+            <div class="step-num">Step 02</div>
+            <h3 class="step-name">Gemma semantic filter</h3>
+            <p class="step-detail">
+              Gemma runs through Ollama on your machine. It extracts temporal commitments like "tomorrow morning", "kal sham tak", or "by end of day" across messy conversational contexts.
+            </p>
+          </div>
+
+          <div class="trail-step">
+            <div class="step-marker" aria-hidden="true"></div>
+            <div class="step-num">Step 03</div>
+            <h3 class="step-name">TabPFN ghost scorer</h3>
+            <p class="step-detail">
+              TabPFN processes the extracted signals alongside conversation timestamp gaps. It performs in-context classification instantly on small tabular slices without requiring model fine-tuning.
+            </p>
+          </div>
+
+          <div class="trail-step">
+            <div class="step-marker" aria-hidden="true"></div>
+            <div class="step-num">Step 04</div>
+            <h3 class="step-name">The ofrenda ledger</h3>
+            <p class="step-detail">
+              Unkept commitments are sorted by days elapsed. You get a clear list of what you abandoned so you can either finish the task or send an honest apology and let the ghost rest.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. Why open, not cloud -->
+      <section id="why-open">
+        <span class="section-eyebrow">Philosophy</span>
+        <h2 class="section-headline">Why this refuses to be a cloud service</h2>
+        
+        <div class="blunt-reasons">
+          <div class="blunt-card">
+            <div class="blunt-index">01 / Privacy</div>
+            <h3 class="blunt-title">Chat exports are too intimate for someone else's server</h3>
+            <p class="blunt-text">
+              These files hold five years of doctor appointments, late night arguments, and passwords sent in panic. You do not upload that to a cloud company to save two minutes of local setup.
+            </p>
+          </div>
+
+          <div class="blunt-card">
+            <div class="blunt-index">02 / Connectivity</div>
+            <h3 class="blunt-title">Works with the wifi completely off</h3>
+            <p class="blunt-text">
+              Turn off your radio, sit on a delayed train, and run the entire scan. Ollama and TabPFN run in memory on your laptop without sending a single packet into the air.
+            </p>
+          </div>
+
+          <div class="blunt-card">
+            <div class="blunt-index">03 / Ownership</div>
+            <h3 class="blunt-title">You can swap the model whenever you want</h3>
+            <p class="blunt-text">
+              No locked endpoints or changing terms. When a lighter model weight drops next month, change one line in the local script and keep your workflow intact.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. Numbers and honesty -->
+      <section id="honesty">
+        <span class="section-eyebrow">Verification</span>
+        <h2 class="section-headline">Numbers and honest limits</h2>
+        
+        <div class="honesty-wrap">
+          <div class="stat-lockup">
+            <div class="accuracy-big">84%</div>
+            <div class="accuracy-label">Extraction Accuracy</div>
+            <div class="accuracy-sub">Measured across 50 hand-checked conversation samples.</div>
+          </div>
+
+          <div class="flaw-box">
+            <div class="flaw-badge">Known failure mode</div>
+            <h3 class="flaw-heading">Where the parser still stumbles</h3>
+            <p class="flaw-text">
+              On dry, sarcastic banter, Gemma regularly flagged jokes like "sure, I will buy you an island on Friday" as high-priority commitments. Sarcasm in multi-lingual chat groups remains an unsolved bug, so an explicit ignore list had to be added.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer with Terracotta Diya Vigil -->
+    <footer>
+      <div class="footer-content">
+        <div class="footer-left">
+          <div class="footer-tagline">Built at 2am under a sputtering desk lamp.</div>
+          <p class="footer-sub">
+            Keep your promises, or light a small candle and let them rest.
+          </p>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/[TODO: your-username]/ghost-threads" target="_blank" rel="noopener noreferrer">github.com/[TODO: your-username]/ghost-threads</a>
+          <span style="color: var(--ash); font-size: 0.78rem;">MIT License &bull; Offline Gemma + TabPFN</span>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    // 1. Floating Cempasuchil Petals & Ember Sparks Canvas
+    const canvas = document.getElementById('petalsCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createParticle(x, y, isEmber) {
+      return {
+        x: x !== undefined ? x : Math.random() * canvas.width,
+        y: y !== undefined ? y : (isEmber ? canvas.height + 10 : -20),
+        size: isEmber ? (1.5 + Math.random() * 2) : (5 + Math.random() * 7),
+        speedY: isEmber ? -(0.8 + Math.random() * 1.5) : (0.6 + Math.random() * 0.9),
+        speedX: (Math.random() - 0.5) * (isEmber ? 1.2 : 0.8),
+        angle: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.03,
+        opacity: isEmber ? (0.6 + Math.random() * 0.4) : (0.35 + Math.random() * 0.45),
+        color: isEmber ? '#fbbf24' : (Math.random() > 0.4 ? '#f59e0b' : '#ea580c'),
+        isEmber: isEmber || false,
+        life: 0
+      };
+    }
+
+    for (let i = 0; i < 20; i++) {
+      particles.push(createParticle(Math.random() * canvas.width, Math.random() * canvas.height, false));
+    }
+    for (let i = 0; i < 10; i++) {
+      particles.push(createParticle(Math.random() * canvas.width, Math.random() * canvas.height, true));
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.y += p.speedY;
+        p.x += Math.sin(p.angle) * 0.5 + p.speedX;
+        p.angle += p.rotSpeed;
+        p.life++;
+
+        if (p.isEmber) {
+          if (p.y < -10 || p.life > 280) {
+            particles[i] = createParticle(Math.random() * canvas.width, canvas.height + 10, true);
+          }
+        } else {
+          if (p.y > canvas.height + 20) {
+            particles[i] = createParticle();
+          }
+        }
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.opacity;
+        ctx.beginPath();
+        if (p.isEmber) {
+          ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+        } else {
+          ctx.rotate(p.angle);
+          ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, Math.PI * 2);
+        }
+        ctx.fill();
+        ctx.restore();
+      }
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // 2. Torchlight mouse follow & Ghost Eye Tracking
+    const torch = document.getElementById('torchlight');
+    const pupils = document.querySelectorAll('.pupil-eye');
+
+    if (window.matchMedia('(pointer: fine)').matches) {
+      window.addEventListener('mousemove', (e) => {
+        torch.style.left = e.clientX + 'px';
+        torch.style.top = e.clientY + 'px';
+
+        // Subtle eye tracking: shift ghost pupil coordinates toward cursor
+        const cx = (e.clientX / window.innerWidth - 0.5) * 1.5;
+        const cy = (e.clientY / window.innerHeight - 0.5) * 1.5;
+        pupils.forEach(pupil => {
+          pupil.style.transform = `translate(${cx}px, ${cy}px)`;
+        });
+      });
+    }
+
+    // Click anywhere to burst ember sparks
+    window.addEventListener('click', (e) => {
+      for (let i = 0; i < 4; i++) {
+        particles.push(createParticle(e.clientX + (Math.random() - 0.5) * 40, e.clientY + (Math.random() - 0.5) * 40, true));
+      }
+      if (particles.length > 55) particles.shift();
+    });
+
+    // 3. Live 412 Days Ticker
+    const ticker = document.getElementById('liveTicker');
+    const baseSeconds = 412 * 86400 + 14 * 3600 + 28 * 60;
+    const startLoad = Date.now();
+
+    function updateLiveTicker() {
+      const elapsed = Math.floor((Date.now() - startLoad) / 1000);
+      const total = baseSeconds + elapsed;
+      const d = Math.floor(total / 86400);
+      const h = Math.floor((total % 86400) / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const s = total % 60;
+      ticker.innerText = `${d} days, ${h} hours, ${m} minutes, ${s} seconds cold`;
+    }
+    setInterval(updateLiveTicker, 1000);
+
+    // 4. Web Audio Candle Ambience
+    let audioCtx = null;
+    let isPlayingAudio = false;
+    let noiseNode = null;
+    let filterNode = null;
+
+    const soundBtn = document.getElementById('soundToggle');
+    const soundLabel = document.getElementById('soundLabel');
+
+    soundBtn.addEventListener('click', () => {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+
+      if (!isPlayingAudio) {
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const bufferSize = audioCtx.sampleRate * 2;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        let b0 = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99 * b0 + white * 0.05;
+          output[i] = b0 * 0.35;
+        }
+
+        noiseNode = audioCtx.createBufferSource();
+        noiseNode.buffer = noiseBuffer;
+        noiseNode.loop = true;
+
+        filterNode = audioCtx.createBiquadFilter();
+        filterNode.type = 'lowpass';
+        filterNode.frequency.setValueAtTime(450, audioCtx.currentTime);
+
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+        noiseNode.connect(filterNode);
+        filterNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        noiseNode.start(0);
+
+        isPlayingAudio = true;
+        soundBtn.classList.add('playing');
+        soundLabel.innerText = 'Sound: 2am Rain & Diya';
+      } else {
+        if (noiseNode) {
+          noiseNode.stop();
+          noiseNode.disconnect();
+        }
+        isPlayingAudio = false;
+        soundBtn.classList.remove('playing');
+        soundLabel.innerText = 'Sound: Off';
+      }
+    });
+
+    // 5. Toggle between Visual Altar and CLI View
+    const btnVisual = document.getElementById('btnViewVisual');
+    const btnCLI = document.getElementById('btnViewCLI');
+    const visualAltar = document.getElementById('visualAltar');
+    const cliView = document.getElementById('cliView');
+
+    btnVisual.addEventListener('click', () => {
+      btnVisual.classList.add('active');
+      btnCLI.classList.remove('active');
+      visualAltar.style.display = 'block';
+      cliView.classList.remove('active');
+    });
+
+    btnCLI.addEventListener('click', () => {
+      btnCLI.classList.add('active');
+      btnVisual.classList.remove('active');
+      visualAltar.style.display = 'none';
+      cliView.classList.add('active');
+    });
+
+    // 6. Interactive Séance Chat Replay Theater
+    let seanceInterval = null;
+    function startSeanceReplay(friendName, friendMsg, myPromise, days, verdict) {
+      const theater = document.getElementById('seanceTheater');
+      const stream = document.getElementById('bubbleStream');
+      const counter = document.getElementById('timelapseCounter');
+      const verdictEl = document.getElementById('seanceVerdict');
+
+      clearInterval(seanceInterval);
+      stream.innerHTML = '';
+      verdictEl.innerText = '';
+      theater.classList.add('active');
+
+      // Step 1: Friend message
+      setTimeout(() => {
+        stream.innerHTML += `<div class="bubble-line bubble-friend"><strong>${friendName}:</strong> "${friendMsg}"</div>`;
+      }, 300);
+
+      // Step 2: My promise
+      setTimeout(() => {
+        stream.innerHTML += `<div class="bubble-line bubble-self"><strong>You:</strong> "${myPromise}"</div>`;
+      }, 1000);
+
+      // Step 3: Fast forward clock simulation
+      setTimeout(() => {
+        let currentDay = 0;
+        seanceInterval = setInterval(() => {
+          currentDay += Math.ceil(days / 15);
+          if (currentDay >= days) {
+            currentDay = days;
+            clearInterval(seanceInterval);
+            verdictEl.innerText = `${verdict} Unresolved after ${days} days. Ghost instantiated.`;
+          }
+          counter.innerText = `+${currentDay} days of complete radio silence...`;
+        }, 60);
+      }, 1600);
+    }
+
+    function closeSeanceTheater() {
+      document.getElementById('seanceTheater').classList.remove('active');
+      clearInterval(seanceInterval);
+    }
+
+    // 7. Diya lighting & Mukti Receipt issuance
+    function releaseGhost(cardId, promiseQuote, days, resultNote) {
+      const card = document.getElementById(cardId);
+      card.classList.add('at-peace');
+      const btn = card.querySelector('.diya-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span>&#10003; Mukti mili</span>';
+
+      const receipt = document.getElementById('receiptBox');
+      document.getElementById('receiptQuote').innerText = `"${promiseQuote}"`;
+      document.getElementById('receiptText').innerText = `Haunted this ledger for ${days} days. ${resultNote} Diya lit on the altar. Debt marked as forgiven.`;
+      document.getElementById('receiptNumber').innerText = `Record #${cardId.replace('card-', '00')}`;
+      receipt.classList.remove('active');
+      void receipt.offsetWidth;
+      receipt.classList.add('active');
+    }
+
+    // 8. Maafi-nama (Apology Draft) Handler
+    function openApology(target, promise, days, text) {
+      const apology = document.getElementById('apologyCard');
+      document.getElementById('apologyTarget').innerText = `Target: ${target} (${days} days cold)`;
+      document.getElementById('apologyText').innerText = text;
+      apology.classList.remove('active');
+      void apology.offsetWidth;
+      apology.classList.add('active');
+    }
+
+    function copyApologyText() {
+      const text = document.getElementById('apologyText').innerText;
+      const btn = document.getElementById('btnCopyApology');
+      navigator.clipboard.writeText(text).then(() => {
+        btn.innerText = 'Copied to clipboard';
+        setTimeout(() => { btn.innerText = 'Copy text'; }, 2000);
+      });
+    }
+
+    // 9. Interactive Summoner
+    function summonTestGhost() {
+      const input = document.getElementById('customPromiseInput').value.trim();
+      const res = document.getElementById('summonResult');
+      if (!input) return;
+
+      res.innerHTML = `
+        <strong>[Gemma Extract]:</strong> Detected promise anchor in "<em>${escapeHTML(input)}</em>"<br>
+        <strong>[TabPFN Classification]:</strong> Temporal urgency: HIGH &bull; Est. lingering risk: 89%<br>
+        <span style="color: var(--marigold); font-size: 0.8rem; margin-top: 0.3rem; display: block;">
+          Ghost created. If unaddressed in 48h, it will haunt your next export.
+        </span>
+      `;
+      res.classList.add('active');
+    }
+
+    // 10. In-Browser File Dropzone Parser (Zero packets sent)
+    const dropzone = document.getElementById('dropzone');
+    const dropFileInput = document.getElementById('dropFileInput');
+    const gallery = document.getElementById('ghostGallery');
+
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('drag-over');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('drag-over');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('drag-over');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) handleLocalFile(files[0]);
+    });
+
+    dropFileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) handleLocalFile(e.target.files[0]);
+    });
+
+    function handleLocalFile(file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const text = evt.target.result;
+        const lines = text.split('\n');
+        let parsedCount = 0;
+        const promiseRegex = /(i'll|will|shall|going to|pakka)\s+(send|review|call|check|bhejo|bhej|do|give|push|ping)/i;
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (promiseRegex.test(line)) {
+            parsedCount++;
+            const newCard = document.createElement('div');
+            newCard.className = 'ghost-card';
+            newCard.id = `card-custom-${parsedCount}`;
+            const cleanQuote = line.replace(/\[.*?\]\s*[^:]+:\s*/, '').trim();
+            const daysMock = Math.floor(Math.random() * 300) + 12;
+
+            newCard.innerHTML = `
+              <div class="ghost-top">
+                <svg class="calavera-spirit" viewBox="0 0 44 48" aria-hidden="true">
+                  <path d="M22 3 C13 3 7 10 7 20 C7 32 3 40 8 41 C12 42 15 36 22 36 C29 36 32 42 36 41 C41 40 37 32 37 20 C37 10 31 3 22 3 Z" fill="rgba(245, 158, 11, 0.08)" stroke="#f59e0b" stroke-width="1.4"/>
+                  <ellipse cx="16" cy="17" rx="3" ry="4" fill="#070605"/>
+                  <ellipse cx="28" cy="17" rx="3" ry="4" fill="#070605"/>
+                  <circle class="pupil-eye" cx="16" cy="18" r="1.3" fill="#fbbf24"/>
+                  <circle class="pupil-eye" cx="28" cy="18" r="1.3" fill="#fbbf24"/>
+                  <circle cx="22" cy="9" r="1.8" fill="#f59e0b"/>
+                  <path d="M17 29 Q22 31 27 29" stroke="#f59e0b" stroke-width="1" fill="none"/>
+                </svg>
+                <span class="ghost-days-badge">${daysMock} days cold</span>
+              </div>
+              <div class="ghost-quote">"${escapeHTML(cleanQuote)}"</div>
+              <div class="ghost-footer-row">
+                <span style="color: var(--ash);">Parsed from ${escapeHTML(file.name)}</span>
+                <div class="ghost-action-btns">
+                  <button type="button" class="apology-trigger-btn" onclick="openApology('Friend', '${escapeHTML(cleanQuote).replace(/'/g, "\\'")}', ${daysMock}, 'Hey, I found this promise from ${daysMock} days ago in my chat export. Truly sorry for never following up.')">
+                    Maafi-nama
+                  </button>
+                  <button type="button" class="diya-btn" onclick="releaseGhost('${newCard.id}', '${escapeHTML(cleanQuote).replace(/'/g, "\\'")}', ${daysMock}, 'Forgiven from local export.')">
+                    <svg class="candle-icon-mini" viewBox="0 0 16 18" aria-hidden="true">
+                      <rect x="5" y="8" width="6" height="9" rx="1" fill="#c5baa6"/>
+                      <path d="M8 2 Q10 5 9 7 Q8 8.5 7 7 Q6 5 8 2 Z" fill="#fbbf24"/>
+                    </svg>
+                    <span>Diya jalao</span>
+                  </button>
+                </div>
+              </div>
+            `;
+            gallery.prepend(newCard);
+            if (parsedCount >= 2) break;
+          }
+        }
+
+        const dropTitle = dropzone.querySelector('.dropzone-title');
+        dropTitle.innerText = `Ingested ${lines.length} lines from ${file.name}`;
+        dropzone.querySelector('.dropzone-sub').innerText = `Found ${parsedCount} unkept commitments right inside your browser memory. Zero packets left your laptop.`;
+      };
+      reader.readAsText(file);
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "ghost-01",
+    "promise": "I will push the bugfix branch before midnight.",
+    "anchor": "before midnight",
+    "days_cold": 1141,
+    "timestamp": "2023-09-15 23:14",
+    "ghost_score": 0.95,
+    "status": "RESTLESS_GHOST",
+    "apology_draft": "Hey dost, I said 'I will push the bugfix branch before midnight.' 1141 days ago and dropped it completely without following up. No excuses about being busy. I apologize for leaving it hanging."
+  },
+  {
+    "id": "ghost-02",
+    "promise": "pakka weekend pe call karta hu for code review.",
+    "anchor": "this weekend",
+    "days_cold": 830,
+    "timestamp": "2024-07-22 17:05",
+    "ghost_score": 0.95,
+    "status": "RESTLESS_GHOST",
+    "apology_draft": "Hey dost, I said 'pakka weekend pe call karta hu for code review.' 830 days ago and dropped it completely without following up. No excuses about being busy. I apologize for leaving it hanging."
+  }
+]
