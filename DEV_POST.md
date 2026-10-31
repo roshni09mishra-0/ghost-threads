@@ -133,6 +133,13 @@ ghost_score = float(clf.predict_proba(X_test)[0][1])
 
 ---
 
+
+### 4. Voice Narration Powered by ElevenLabs
+To give the ofrenda demo a cinematic voice, we utilized **ElevenLabs AI Voice Synthesis** (Adam voice model). The narration guides the viewer through the 2 AM origin story, the mathematical regret mechanics of TabPFN, and the psychological closure of lighting a candle. 
+
+- **Demo Video:** [Watch on GitHub / YouTube](https://github.com/roshni09mishra-0/ghost-threads/blob/main/Ghost_Threads_Demo_ElevenLabs.mp4)
+- **Audio Master:** [ElevenLabs Narration MP3](https://raw.githubusercontent.com/roshni09mishra-0/ghost-threads/main/audio/ghost_threads_narration.mp3)
+
 ### 3. Hosted on Render (Frontend Platform)
 The interactive ofrenda altar frontend is hosted live on **Render** at [https://ghost-threads.onrender.com/](https://ghost-threads.onrender.com/). 
 
