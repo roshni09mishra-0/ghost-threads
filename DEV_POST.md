@@ -22,7 +22,7 @@ Instead of building yet another generic "chat with your PDF" bot, I decided to b
 
 Here is the quick video walkthrough:
 
-{% youtube dbFfZA3BhYY %}
+{% youtube fQ2vi3E4Mwg %}
 
 ---
 
@@ -30,7 +30,7 @@ Here is the quick video walkthrough:
 
 - **Live Altar (Hosted on Render):** [https://ghost-threads.onrender.com/](https://ghost-threads.onrender.com/)
 - **GitHub Repository:** [https://github.com/roshni09mishra-0/ghost-threads](https://github.com/roshni09mishra-0/ghost-threads)
-- **YouTube Walkthrough:** [https://youtu.be/dbFfZA3BhYY](https://youtu.be/dbFfZA3BhYY)
+- **YouTube Walkthrough:** [https://youtu.be/fQ2vi3E4Mwg](https://youtu.be/fQ2vi3E4Mwg)
 
 ---
 

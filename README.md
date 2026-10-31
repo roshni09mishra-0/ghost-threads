@@ -3,7 +3,7 @@
 > Scans private chat exports locally, finds promises nobody kept ("I'll send it tomorrow"), and shows them as restless ghosts on a candlelit ofrenda.
 
 - 🌐 **Live Demo (Render):** [https://ghost-threads.onrender.com/](https://ghost-threads.onrender.com/)
-- 🎥 **Video Demo (ElevenLabs Narration):** [https://youtu.be/dbFfZA3BhYY](https://youtu.be/dbFfZA3BhYY)
+- 🎥 **Video Demo (ElevenLabs Narration):** [https://youtu.be/fQ2vi3E4Mwg](https://youtu.be/fQ2vi3E4Mwg)
 - 📝 **DEV.to Submission Post:** [https://dev.to/roshni_mishra_9ed865d304f/ghost-threads-resurrecting-47-unkept-promises-on-an-offline-ofrenda-gemma-tabpfn-render-34k](https://dev.to/roshni_mishra_9ed865d304f/ghost-threads-resurrecting-47-unkept-promises-on-an-offline-ofrenda-gemma-tabpfn-render-34k)
 
 Runs **100% offline** with **Google Gemma (via local Ollama)** + **TabPFN**.
