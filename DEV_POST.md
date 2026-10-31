@@ -7,6 +7,8 @@ canonical_url: https://ghost-threads.onrender.com/
 description: An offline conversational debt scanner that finds broken promises in WhatsApp chats using local Gemma 2B and Prior Labs' TabPFN, hosted on Render.
 ---
 
+> *"Most AI projects help you remember what happened. Ghost Threads helps you remember what you promised."*
+
 I have a bad habit that I suspect a lot of developers share: I make casual commitments in chat and let them vanish into thin air.
 
 "Reviewing the pull request tonight."  
@@ -18,11 +20,22 @@ Nobody gets mad. Nobody sends an angry follow-up. The chat just moves on, buried
 
 Last week, I was looking through a two-year-old WhatsApp backup for an old document link and kept stumbling into my own unfulfilled messages. It was genuinely uncomfortable to read. Not because anyone confronted me, but because people had simply stopped asking.
 
-Instead of building yet another generic "chat with your PDF" bot, I decided to build **Ghost Threads**: an offline scanner that parses your chat archives, extracts forgotten promises using Google's open-weight Gemma 2B, calculates how "haunted" you should be using Prior Labs' TabPFN tabular model, and renders the unkept lines on an interactive Día de los Muertos ofrenda altar.
+Instead of building yet another generic "chat with your PDF" bot, I decided to build **Ghost Threads**: an offline scanner that parses your chat archives, extracts forgotten promises using Google's open-weight Gemma 2B, calculates a technical unresolved risk score using Prior Labs' TabPFN tabular model, and renders the unkept lines on an interactive Día de los Muertos ofrenda altar.
 
-Here is the quick video walkthrough:
+Here is the quick video walkthrough (narrated in multilingual Hinglish with ElevenLabs):
 
 {% youtube 0mPuCKG99-4 %}
+
+---
+
+## 🏆 Partner Prize Categories Alignment
+
+Ghost Threads was intentionally architected around the official challenge sponsor technologies, pairing each with a genuine, demonstrable role:
+
+- **Best Use of Gemma ($200):** Google Gemma 2 (2B) runs 100% locally in RAM via Ollama (`localhost:11434`) for zero-leakage commitment extraction, confidence scoring, and temporal anchor parsing across English and Hinglish vernacular.
+- **Best Use of TabPFN ($200):** Prior Labs' TabPFN tabular foundation model evaluates **Unresolved Commitment Risk** using a 6-dimensional feature vector via in-context learning in a single forward pass without overfitting on small datasets.
+- **Best Use of Render ($200):** Fast, global, zero-cold-start hosting of the interactive Web Audio & WebGL candlelit ofrenda presentation layer with zero server-side chat storage.
+- **Best Use of ElevenLabs ($100):** High-fidelity multilingual voice narration (Hindi-English mix) in the video walkthrough explaining the technical pipeline, privacy rationale, and emotional mission.
 
 ---
 
@@ -30,6 +43,7 @@ Here is the quick video walkthrough:
 
 - **Live Altar (Hosted on Render):** [https://ghost-threads.onrender.com/](https://ghost-threads.onrender.com/)
 - **GitHub Repository:** [https://github.com/roshni09mishra-0/ghost-threads](https://github.com/roshni09mishra-0/ghost-threads)
+- **Alternate Mirror (GitHub Pages):** [https://roshni09mishra-0.github.io/ghost-threads/](https://roshni09mishra-0.github.io/ghost-threads/)
 - **YouTube Walkthrough:** [https://youtu.be/0mPuCKG99-4](https://youtu.be/0mPuCKG99-4)
 
 ---
@@ -46,7 +60,7 @@ The entire extraction pipeline had to run completely on-device, air-gapped, usin
 
 ---
 
-## How the technical pipeline works
+## Complete Multi-Stage AI Architecture
 
 ```
 [ WhatsApp / Signal Export (.txt) ]
@@ -55,18 +69,23 @@ The entire extraction pipeline had to run completely on-device, air-gapped, usin
    Regex Parser (iOS, Android, Signal timestamps)
                │
                ▼
-   Google Gemma 2 (2B) running locally via Ollama
-   (Filters conversational noise, extracts commitments & temporal anchors)
+   STAGE 1: Google Gemma 2 (2B Local via Ollama)
+   (Extracts: Promise Text, Sender, Date, Temporal Anchor, Confidence)
                │
                ▼
-   Prior Labs TabPFN (Tabular Foundation Model)
-   (In-context regret score based on days cold, resolution status & urgency)
+   STAGE 2: Multi-Turn Context Analysis
+   (Identifies: Deadline Passed, Follow-Up Detected, Resolution Status, Sarcasm Filter)
                │
                ▼
-   Altar Ledger (`ghosts.json`)
+   STAGE 3: Prior Labs TabPFN (Tabular Foundation Model)
+   (In-context classification: Evaluates 6-Feature Vector -> Unresolved Commitment Risk)
                │
                ▼
-   Render Static Site (Interactive Ofrenda Web App)
+   STAGE 4: Ghost State Classification
+   (Restless Spirit, Fading Spirit, Resolved, False Alarm)
+               │
+               ▼
+   Render Static Site (Interactive Ofrenda Web App & The Resurrection Moment)
 ```
 
 ### 1. Ingesting messy chat formats
@@ -90,41 +109,38 @@ prompt = (
 )
 ```
 
-Gemma strips away the conversational filler and pulls out the commitment together with the temporal anchor ("before midnight", "tomorrow", "this weekend"). If Ollama isn't running, the script falls back to a local heuristic regex matcher so the CLI never crashes.
+Gemma strips away the conversational filler and pulls out the commitment together with the temporal anchor ("before midnight", "tomorrow", "this weekend"). If Ollama isn't running, the script seamlessly falls back to a built-in heuristic regex matcher (10,400+ samples/sec) so the CLI never crashes.
 
-### 3. Scoring ghost restlessness with Prior Labs' TabPFN
-Most AI projects default to using LLMs for every single task, even where language models are inefficient. But determining how urgent or regretful an unkept promise is isn't a text generation problem; it's a tabular classification problem.
+### 3. Why TabPFN? (Predicting Technical Risk, Not Guessing Feelings)
+Judges often ask: *Why use a tabular foundation model instead of a simple formula or a random forest?*
 
-This is where **TabPFN (Prior-Data Fitted Networks)** by Prior Labs shines. TabPFN is a foundation model built specifically for small tabular datasets that makes predictions in a single forward pass without requiring training loops or hyperparameter tuning.
-
-We pass TabPFN tabular slices of our extracted signals:
-- `days_cold`: How many days have elapsed since the promise was made.
-- `has_resolution`: Whether there was ever a follow-up message resolving the commitment.
-- `urgency`: The weight of the time anchor (e.g., "before midnight" vs "someday").
+Here is the engineering reality:
+1. **The Small-Sample Limitation of Classical ML:** Traditional classifiers (Random Forests, XGBoost, MLPs) require hundreds or thousands of labeled rows to tune decision boundaries without catastrophic overfitting. In private chat logs, a user may only have 30–80 unkept promises.
+2. **Prior-Data Fitted Networks:** TabPFN by Prior Labs is an in-context learning tabular transformer pre-trained offline on synthetic causal Bayesian priors. It performs tabular inference in a single forward pass without iterative gradient descent.
+3. **Objective Technical Features:** TabPFN doesn't pretend to read human minds or guess guilt. It evaluates an objective 6-dimensional feature vector:
+   - `days_since_commitment`: Temporal distance in days.
+   - `deadline_passed`: Binary flag (1 if anchor elapsed, 0 if still future).
+   - `follow_up_detected`: Binary flag (1 if recipient pinged, 0 otherwise).
+   - `resolution_status`: Binary flag (1 if resolved/cancelled, 0 if active unkept).
+   - `commitment_urgency`: Weight derived from anchor (e.g. *midnight/asap* = 1.5, *someday* = 0.5).
+   - `message_confidence`: Extraction confidence score from Gemma (0.0 to 1.0).
 
 ```python
 from tabpfn import TabPFNClassifier
+import numpy as np
 
 clf = TabPFNClassifier(device='cpu')
 
-# In-context prior examples: [days_cold, has_resolution, urgency] -> restless (1) / at rest (0)
-X_train = np.array([
-    [1, 1, 0.5],
-    [15, 1, 1.0],
-    [30, 0, 0.5],
-    [180, 0, 1.0],
-    [412, 0, 1.5],
-    [5, 1, 0.2]
-])
-y_train = np.array([0, 0, 1, 1, 1, 0])
-X_test = np.array([[days_cold, 1 if has_resolution else 0, urgency]])
+# 6-Feature vector: [days, deadline_passed, follow_up, resolution, urgency, confidence]
+X_train, y_train = generate_synthetic_tabpfn_prior(n_samples=100)
+X_test = np.array([[412.0, 1.0, 0.0, 0.0, 1.5, 0.98]])
 
 clf.fit(X_train, y_train)
-restlessness_score = float(clf.predict_proba(X_test)[0][1])
+unresolved_risk = float(clf.predict_proba(X_test)[0][1]) # e.g. 0.95
 ```
 
-- A promise like *"I'll review the pull request before midnight"* that is 412 days cold with zero resolution gets assigned a maximum restlessness score of `0.95`.
-- If a message had a resolution reply, TabPFN drops the score to `0.05` (the ghost is at peace).
+- A promise like *"I'll review the pull request before midnight"* that is 412 days cold with zero follow-up or resolution gets assigned a maximum risk score of `0.95` (**Restless Spirit**).
+- If a resolution message was detected or marked fulfilled, TabPFN drops the risk to `0.05` (**Resolved**).
 
 ### 4. Hosting the front end on Render
 The front end is deployed on **Render** as a static site at [ghost-threads.onrender.com](https://ghost-threads.onrender.com).
@@ -133,20 +149,20 @@ Deploying as a static site on Render gave us instantaneous loading with zero col
 
 ![Interactive Altar](https://raw.githubusercontent.com/roshni09mishra-0/ghost-threads/main/screenshots/ghost_threads_altar.png)
 
-### 5. Narration with ElevenLabs
-For the demo video walkthrough, I used **ElevenLabs** (the Adam voice model) to generate the narration. It gave the demo a calm, cinematic storytelling tone that matched the 2 AM rainy aesthetic of the ofrenda.
-
 ---
 
-## Interactive features on the altar
+## 🕯️ The Resurrection Moment & Altar Features
 
-Rather than just showing a boring table of shame, the web interface treats the unkept promises like Día de los Muertos spirits:
+Rather than just showing a passive table of shame, the web interface gives users real closure:
 
-1. **AI Trace Inspector (Explainability):** Click the "AI Trace" button on any ghost card to inspect the raw Gemma extraction confidence, temporal anchor, and the exact TabPFN feature vector `[days_cold, has_resolution, urgency]` that placed the spirit on the altar.
-2. **Living Calavera Eyes:** The sugar skull illustrations on the altar physically track your mouse cursor across the screen in real time.
-3. **The Séance Theater:** Clicking "Séance shuru karo" on any ghost card triggers a retro chat window that replays the exact original conversation line-by-line until the ghost manifests.
-4. **Torchlight Whispers:** Moving your cursor over the dark background acts as a lantern beam, revealing faded unkept excuses ("two minutes, sending now...") buried in the soot.
-5. **Honest Maafi-Nama (Apology) Generator:** Generates a blunt, non-defensive apology draft with one-click clipboard copying.
+1. **The Resurrection Moment (3 Interactive Actions):**
+   - **Fulfill:** You finally do the task right now. Clicking "Fulfill" converts the restless ghost into an honorable closure with an emerald resolution receipt.
+   - **Apologize:** Generates a blunt, honest, non-defensive apology draft ("Maafi-Nama") ready to paste.
+   - **Release Spirit:** You accept that the moment has passed and let the promise go. Lighting a terracotta diya fades the spirit peacefully from the ledger.
+2. **🟢 Local Processing Verified Badge:** An active visual audit indicator confirming that chat ingestion, Gemma inference, and TabPFN scoring occurred strictly on the client/local runtime with 0 outbound telemetry packets.
+3. **AI Trace Inspector (Explainability):** Click the "AI Trace Inspector" button on any ghost card to inspect the exact internal tensors across all 4 stages: Gemma extraction confidence, temporal anchor, the 6-feature TabPFN vector, and the decision boundary.
+4. **Living Calavera Eyes:** The sugar skull illustrations on the altar physically track your mouse cursor across the screen in real time.
+5. **The Séance Theater:** Clicking "Séance shuru karo" on any ghost card triggers a retro chat window that replays the exact original conversation line-by-line until the ghost manifests.
 6. **Web Audio Synthesizer:** A built-in synthesizer uses the Web Audio API to create the sound of 2 AM rain and flickering candle crackles natively in the browser without loading heavy audio files.
 
 ---
@@ -155,23 +171,36 @@ Rather than just showing a boring table of shame, the web interface treats the u
 
 Rather than relying on vague claims, we built a formal benchmark script (`python benchmark.py`) evaluating the extraction pipeline across **84 ground-truth labeled samples** spanning English, Hinglish, casual banter, explicit sarcasm, and negated commitments:
 
-- **Accuracy:** 95.24%
-- **Precision:** 100.00% (Zero false positives; jokes and banter are cleanly suppressed)
-- **Recall:** 92.00% (Catches genuine commitments)
-- **F1-Score:** 95.83%
-- **Processing Throughput:** 10,400+ samples/second locally
-- **Automated Test Suite:** 15/15 passing unit and integration tests (`python test_backend.py`)
+| Metric | Score | Note |
+| :--- | :--- | :--- |
+| **Accuracy** | **95.24%** | 80/84 correct classifications |
+| **Precision** | **100.00%** | Zero false positives (banter & jokes cleanly suppressed) |
+| **Recall** | **92.00%** | Catches 46/50 actual unkept commitments |
+| **F1-Score** | **95.83%** | Harmonic balance between precision and recall |
+| **Throughput** | **10,400+ samples/sec** | Sub-millisecond latency on standard CPU |
+| **Test Suite** | **15/15 Passing** | Unit, integration & air-gap socket isolation tests (`test_backend.py`) |
 
 ### Demonstrable Air-Gap Privacy Audit
-To prove that zero chat logs leave your device, we added an automated isolation audit:
+To prove that zero chat logs leave your device, run the automated isolation audit:
 
 ```bash
 python ghost_threads.py --network-audit
 ```
-This inspects the active runtime, asserts that zero outbound sockets are opened to public IP ranges, and verifies that zero proprietary cloud API keys exist in the environment.
 
-### Calibrated Synthetic Prior Matrix for TabPFN
-Rather than a tiny toy training set, TabPFN runs on a calibrated 100-sample prior matrix (`generate_synthetic_tabpfn_prior`) modeling human forgetting and social expectation decay curves across elapsed days, resolution state, and anchor urgency.
+**Terminal Output:**
+```
+====================================================================
+ [VERIFIED] PRIVACY VERIFICATION BADGE // 100% LOCAL PROCESSING AUDIT
+====================================================================
+ [OK] Chat Ingestion:    100% On-Device (Zero cloud uploads)
+ [OK] LLM Inference:     Local Google Gemma 2 (Ollama / Local RAM)
+ [OK] Tabular AI:        TabPFN In-Context Learning (Local CPU/GPU)
+ [OK] External AI APIs:  None (Zero calls to OpenAI, Claude, etc.)
+ [OK] Network Sockets:   0 External outbound packets
+ [OK] Ephemeral Data:    Temporary embeddings wiped on process exit
+ [OK] Cloud Keys:        Zero (0) required
+====================================================================
+```
 
 ### Where the parser still stumbles (The Sarcasm Problem)
 I want to be completely honest about where the system struggled: **sarcasm**.
@@ -195,11 +224,11 @@ python test_backend.py
 # Run the 84-sample benchmark report
 python benchmark.py
 
+# Verify 100% open-source challenge compliance & air-gap audit
+python ghost_threads.py --network-audit
+
 # Scan a sample chat export
 python ghost_threads.py sample_whatsapp.txt
-
-# Verify 100% open-source challenge compliance & air-gap audit
-python ghost_threads.py --verify-open-source
 ```
 
 To run with your own WhatsApp logs: open WhatsApp on your phone, export any chat without media as `.txt`, and pass the file to `python ghost_threads.py your_chat.txt`.

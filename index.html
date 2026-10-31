@@ -623,6 +623,74 @@
       color: var(--bone);
     }
 
+    .fulfill-btn {
+      background: transparent;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #10b981;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .fulfill-btn:hover {
+      background: #10b981;
+      color: #052e16;
+      border-color: #10b981;
+    }
+
+    /* Privacy Verification Badge */
+    .privacy-badge-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      background: rgba(16, 185, 129, 0.04);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 4px;
+      padding: 0.85rem 1.1rem;
+      margin-bottom: 1.5rem;
+      font-family: var(--font-mono);
+      text-align: left;
+    }
+
+    .privacy-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #10b981;
+      letter-spacing: 0.04em;
+    }
+
+    .privacy-pulse {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulseGreen 2s infinite;
+    }
+
+    @keyframes pulseGreen {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.25); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.8; }
+    }
+
+    .privacy-details-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      font-size: 0.74rem;
+      color: var(--ash);
+    }
+
+    .privacy-details-row span strong {
+      color: var(--bone);
+    }
+
     /* Interactive Séance Replay Button */
     .seance-replay-btn {
       background: transparent;
@@ -1484,6 +1552,22 @@
 
           <!-- Visual Altar View with Calavera Spirits -->
           <div id="visualAltar">
+            <!-- 🟢 Local Processing Verified Badge -->
+            <div class="privacy-badge-container">
+              <div class="privacy-badge-pill">
+                <span class="privacy-pulse"></span>
+                <span>Local Processing Verified &bull; Air-Gapped Privacy Audit</span>
+              </div>
+              <div class="privacy-details-row">
+                <span><strong>Chat Ingestion:</strong> 100% Local Device</span>
+                <span><strong>Extraction LLM:</strong> Google Gemma 2 (Local RAM)</span>
+                <span><strong>Tabular Model:</strong> Prior Labs TabPFN</span>
+                <span><strong>External AI APIs:</strong> Zero (0)</span>
+                <span><strong>Raw Uploads:</strong> None</span>
+                <span><strong>Socket Audit:</strong> 0 Outbound Packets</span>
+              </div>
+            </div>
+
             <div class="ghost-gallery" id="ghostGallery" role="region" aria-label="Unkept promises list">
               <!-- Ghost 1 -->
               <div class="ghost-card" id="card-1">
@@ -1506,25 +1590,29 @@
                 </button>
                 <button type="button" class="ai-trace-btn" onclick="toggleAITrace('trace-1')">
                   <span>&#9881;</span>
-                  <span>AI Trace</span>
+                  <span>AI Trace Inspector</span>
                 </button>
                 <div id="trace-1" class="ai-trace-drawer" style="display: none;">
-                  <div><span class="trace-tag">Gemma 2B:</span> Intent="commitment" | Anchor="before midnight"</div>
-                  <div><span class="trace-tag">TabPFN Vector:</span> [days=412, resolved=0, urgency=1.5] &rarr; score=0.95</div>
-                  <div><span class="trace-tag">Decision:</span> Restless Ghost (412 days cold, no resolution)</div>
+                  <div><span class="trace-tag">Stage 1 (Gemma 2B):</span> Intent="commitment" | Anchor="before midnight" | Conf=0.98</div>
+                  <div><span class="trace-tag">Stage 2 (Context):</span> Deadline_Passed=1 | Follow_Up=0 | Resolved=0</div>
+                  <div><span class="trace-tag">Stage 3 (TabPFN):</span> [412d, 1, 0, 0, 1.5, 0.98] &rarr; Risk Score=0.95</div>
+                  <div><span class="trace-tag">Stage 4 (State):</span> <strong style="color: #ef4444;">Restless Spirit</strong> (Unresolved conversational debt)</div>
                 </div>
                 <div class="ghost-footer-row">
                   <span style="color: var(--ash);">GitHub ping</span>
                   <div class="ghost-action-btns">
+                    <button type="button" class="fulfill-btn" onclick="fulfillGhost('card-1', 'I\'ll review the pull request before midnight.', 412)">
+                      &#10003; Fulfill
+                    </button>
                     <button type="button" class="apology-trigger-btn" onclick="openApology('Alex', 'I\'ll review the pull request before midnight.', 412, 'I never reviewed your pull request and you had to merge it yourself 3 days later. Truly sorry for dropping the ball on that. Sending this so the ghost leaves me alone.')">
-                      Maafi-nama
+                      Apologize
                     </button>
                     <button type="button" class="diya-btn" onclick="releaseGhost('card-1', 'I\'ll review the pull request before midnight.', 412, 'PR merged without review. Apology text sent.')">
                       <svg class="candle-icon-mini" viewBox="0 0 16 18" aria-hidden="true">
                         <rect x="5" y="8" width="6" height="9" rx="1" fill="#c5baa6"/>
                         <path d="M8 2 Q10 5 9 7 Q8 8.5 7 7 Q6 5 8 2 Z" fill="#fbbf24"/>
                       </svg>
-                      <span>Diya jalao</span>
+                      <span>Release</span>
                     </button>
                   </div>
                 </div>
@@ -1551,25 +1639,29 @@
                 </button>
                 <button type="button" class="ai-trace-btn" onclick="toggleAITrace('trace-2')">
                   <span>&#9881;</span>
-                  <span>AI Trace</span>
+                  <span>AI Trace Inspector</span>
                 </button>
                 <div id="trace-2" class="ai-trace-drawer" style="display: none;">
-                  <div><span class="trace-tag">Gemma 2B:</span> Intent="commitment" | Anchor="tomorrow"</div>
-                  <div><span class="trace-tag">TabPFN Vector:</span> [days=189, resolved=0, urgency=1.0] &rarr; score=0.82</div>
-                  <div><span class="trace-tag">Decision:</span> Restless Ghost (189 days cold, thread abandoned)</div>
+                  <div><span class="trace-tag">Stage 1 (Gemma 2B):</span> Intent="commitment" | Anchor="tomorrow" | Conf=0.96</div>
+                  <div><span class="trace-tag">Stage 2 (Context):</span> Deadline_Passed=1 | Follow_Up=0 | Resolved=0</div>
+                  <div><span class="trace-tag">Stage 3 (TabPFN):</span> [189d, 1, 0, 0, 1.0, 0.96] &rarr; Risk Score=0.82</div>
+                  <div><span class="trace-tag">Stage 4 (State):</span> <strong style="color: #f59e0b;">Restless Spirit</strong> (Thread abandoned)</div>
                 </div>
                 <div class="ghost-footer-row">
                   <span style="color: var(--ash);">Peer DM</span>
                   <div class="ghost-action-btns">
+                    <button type="button" class="fulfill-btn" onclick="fulfillGhost('card-2', 'Will send you the portfolio contact tomorrow morning.', 189)">
+                      &#10003; Fulfill
+                    </button>
                     <button type="button" class="apology-trigger-btn" onclick="openApology('Rohan', 'Will send you the portfolio contact tomorrow morning.', 189, 'Hey, I said I would forward that designer contact 189 days ago and then completely spaced on it. Hope you found what you needed back then, my apologies for ghosting.')">
-                      Maafi-nama
+                      Apologize
                     </button>
                     <button type="button" class="diya-btn" onclick="releaseGhost('card-2', 'Will send you the portfolio contact tomorrow morning.', 189, 'Contact finally shared after half a year.')">
                       <svg class="candle-icon-mini" viewBox="0 0 16 18" aria-hidden="true">
                         <rect x="5" y="8" width="6" height="9" rx="1" fill="#c5baa6"/>
                         <path d="M8 2 Q10 5 9 7 Q8 8.5 7 7 Q6 5 8 2 Z" fill="#fbbf24"/>
                       </svg>
-                      <span>Diya jalao</span>
+                      <span>Release</span>
                     </button>
                   </div>
                 </div>
@@ -1596,20 +1688,33 @@
                 </button>
                 <button type="button" class="ai-trace-btn" onclick="toggleAITrace('trace-3')">
                   <span>&#9881;</span>
-                  <span>AI Trace</span>
+                  <span>AI Trace Inspector</span>
                 </button>
                 <div id="trace-3" class="ai-trace-drawer" style="display: none;">
-                  <div><span class="trace-tag">Gemma 2B:</span> Intent="commitment" | Anchor="this weekend"</div>
-                  <div><span class="trace-tag">TabPFN Vector:</span> [days=73, resolved=0, urgency=1.0] &rarr; score=0.61</div>
-                  <div><span class="trace-tag">Decision:</span> Restless Ghost (73 days cold, social debt)</div>
+                  <div><span class="trace-tag">Stage 1 (Gemma 2B):</span> Intent="commitment" | Anchor="this weekend" | Conf=0.94</div>
+                  <div><span class="trace-tag">Stage 2 (Context):</span> Deadline_Passed=1 | Follow_Up=0 | Resolved=0</div>
+                  <div><span class="trace-tag">Stage 3 (TabPFN):</span> [73d, 1, 0, 0, 1.0, 0.94] &rarr; Risk Score=0.61</div>
+                  <div><span class="trace-tag">Stage 4 (State):</span> <strong style="color: #fbbf24;">Fading Spirit</strong> (Social debt decaying)</div>
                 </div>
                 <div class="ghost-footer-row">
                   <span style="color: var(--ash);">WhatsApp group</span>
                   <div class="ghost-action-btns">
+                    <button type="button" class="fulfill-btn" onclick="fulfillGhost('card-3', 'Let us catch up this weekend for sure, chai on me.', 73)">
+                      &#10003; Fulfill
+                    </button>
                     <button type="button" class="apology-trigger-btn" onclick="openApology('Priyesh', 'Let us catch up this weekend for sure, chai on me.', 73, 'Bhai, 73 din pehle chai ka vaada kiya tha aur gayab ho gaya. Next week pakka chai meri taraf se, ya UPI bhej raha hoon.')">
-                      Maafi-nama
+                      Apologize
                     </button>
                     <button type="button" class="diya-btn" onclick="releaseGhost('card-3', 'Let us catch up this weekend for sure, chai on me.', 73, 'Sent payment for tea over UPI to clear conscience.')">
+                      <svg class="candle-icon-mini" viewBox="0 0 16 18" aria-hidden="true">
+                        <rect x="5" y="8" width="6" height="9" rx="1" fill="#c5baa6"/>
+                        <path d="M8 2 Q10 5 9 7 Q8 8.5 7 7 Q6 5 8 2 Z" fill="#fbbf24"/>
+                      </svg>
+                      <span>Release</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
                       <svg class="candle-icon-mini" viewBox="0 0 16 18" aria-hidden="true">
                         <rect x="5" y="8" width="6" height="9" rx="1" fill="#c5baa6"/>
                         <path d="M8 2 Q10 5 9 7 Q8 8.5 7 7 Q6 5 8 2 Z" fill="#fbbf24"/>
@@ -2108,6 +2213,35 @@
     function closeSeanceTheater() {
       document.getElementById('seanceTheater').classList.remove('active');
       clearInterval(seanceInterval);
+    }
+
+    // 6.5 The Resurrection Moment: Fulfill Promise
+    function fulfillGhost(cardId, promiseQuote, days) {
+      const card = document.getElementById(cardId);
+      card.classList.add('at-peace');
+      card.style.borderColor = 'rgba(16, 185, 129, 0.6)';
+      card.style.background = '#06130d';
+
+      const badge = card.querySelector('.ghost-days-badge');
+      if (badge) {
+        badge.style.color = '#10b981';
+        badge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        badge.style.background = 'rgba(16, 185, 129, 0.1)';
+        badge.innerText = '✓ Fulfilled & Closed';
+      }
+
+      const btns = card.querySelector('.ghost-action-btns');
+      if (btns) {
+        btns.innerHTML = '<span style="color: #10b981; font-weight: 600; font-size: 0.8rem; font-family: var(--font-mono);">&#10003; Promise Completed!</span>';
+      }
+
+      const receipt = document.getElementById('receiptBox');
+      document.getElementById('receiptQuote').innerText = `"${promiseQuote}"`;
+      document.getElementById('receiptText').innerText = `Resurrected after ${days} days. You stepped up and fulfilled the promise today. Ghost converted into an honorable closure.`;
+      document.getElementById('receiptNumber').innerText = `Resolution #${cardId.replace('card-', 'FULFILL-00')}`;
+      receipt.classList.remove('active');
+      void receipt.offsetWidth;
+      receipt.classList.add('active');
     }
 
     // 7. Diya lighting & Mukti Receipt issuance

@@ -136,7 +136,7 @@ class TestOpenSourceCompliance(unittest.TestCase):
         from ghost_threads import generate_synthetic_tabpfn_prior
         X, y = generate_synthetic_tabpfn_prior(n_samples=100)
         self.assertEqual(X.shape[0], 100)
-        self.assertEqual(X.shape[1], 3) # [days_cold, has_resolution, urgency]
+        self.assertEqual(X.shape[1], 6) # [days_since, deadline_passed, follow_up, resolution, urgency, confidence]
         self.assertEqual(len(y), 100)
         # Verify binary classification targets
         self.assertTrue(set(y).issubset({0, 1}))

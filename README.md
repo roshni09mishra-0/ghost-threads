@@ -1,24 +1,66 @@
 # Ghost Threads
 
-> Scans private chat exports locally, finds promises nobody kept ("I'll send it tomorrow"), and shows them as restless ghosts on a candlelit ofrenda.
+> *"Most AI projects help you remember what happened. Ghost Threads helps you remember what you promised."*
+
+Ghost Threads scans private chat exports locally, extracts unkept commitments using Google Gemma 2 (via local Ollama), scores unresolved commitment risk using Prior Labs' TabPFN, and manifests the forgotten words as restless spirits on a candlelit ofrenda altar.
 
 - 🌐 **Live Demo (Render):** [https://ghost-threads.onrender.com/](https://ghost-threads.onrender.com/)
 - 🎥 **Video Demo (ElevenLabs Narration):** [https://youtu.be/0mPuCKG99-4](https://youtu.be/0mPuCKG99-4)
 - 📝 **DEV.to Submission Post:** [https://dev.to/roshni_mishra_9ed865d304f/ghost-threads-resurrecting-47-unkept-promises-on-an-offline-ofrenda-gemma-tabpfn-render-34k](https://dev.to/roshni_mishra_9ed865d304f/ghost-threads-resurrecting-47-unkept-promises-on-an-offline-ofrenda-gemma-tabpfn-render-34k)
+- 🪞 **Alternate Mirror (GitHub Pages):** [https://roshni09mishra-0.github.io/ghost-threads/](https://roshni09mishra-0.github.io/ghost-threads/)
 
-Runs **100% offline** with **Google Gemma (via local Ollama)** + **TabPFN**.
+Runs **100% offline** with **Google Gemma 2 (via local Ollama)** + **TabPFN**.
 Zero API keys. Zero cloud calls. Chat data never leaves your laptop.
 
 ---
 
-## Open-Source Challenge Alignment & Audit
+## 🏆 Partner Prize Categories Alignment
+
+- **Best Use of Gemma ($200):** Google Gemma 2 (2B) runs 100% locally in RAM via Ollama (`localhost:11434`) for zero-leakage commitment extraction, confidence scoring, and temporal anchor parsing across English and Hinglish vernacular.
+- **Best Use of TabPFN ($200):** Prior Labs' TabPFN tabular foundation model evaluates **Unresolved Commitment Risk** using a 6-dimensional feature vector via in-context learning in a single forward pass without overfitting on small datasets.
+- **Best Use of Render ($200):** Fast, global, zero-cold-start hosting of the interactive Web Audio & WebGL candlelit ofrenda presentation layer with zero server-side chat storage.
+- **Best Use of ElevenLabs ($100):** High-fidelity multilingual voice narration (Hindi-English mix) in the video walkthrough explaining the technical pipeline, privacy rationale, and emotional mission.
+
+---
+
+## 🏛️ Multi-Stage AI Architecture
+
+```
+[ WhatsApp / Signal Export (.txt) ]
+               │
+               ▼
+   Regex Parser (iOS, Android, Signal timestamps)
+               │
+               ▼
+   STAGE 1: Google Gemma 2 (2B Local via Ollama)
+   (Extracts: Promise Text, Sender, Date, Temporal Anchor, Confidence)
+               │
+               ▼
+   STAGE 2: Multi-Turn Context Analysis
+   (Identifies: Deadline Passed, Follow-Up Detected, Resolution Status, Sarcasm Filter)
+               │
+               ▼
+   STAGE 3: Prior Labs TabPFN (Tabular Foundation Model)
+   (In-context classification: Evaluates 6-Feature Vector -> Unresolved Commitment Risk)
+               │
+               ▼
+   STAGE 4: Ghost State Classification
+   (Restless Spirit, Fading Spirit, Resolved, False Alarm)
+               │
+               ▼
+   Render Static Site (Interactive Ofrenda Web App & The Resurrection Moment)
+```
+
+---
+
+## Open-Source Challenge Alignment & License Audit
 
 Ghost Threads strictly complies with the Open Source AI Challenge criteria:
 
 | Component | Architecture / Model | License | Source / Provider | Local Execution |
 | :--- | :--- | :--- | :--- | :--- |
-| **Commitment Extraction** | **Google Gemma 2 (2B)** | Gemma Open Terms / Apache 2.0 | Google DeepMind via local Ollama | 100% in RAM (`localhost:11434`) |
-| **Regret / Score AI** | **TabPFN** | Apache 2.0 | Prior Labs / AutoML | 100% on CPU/GPU |
+| **Commitment Extraction** | **Google Gemma 2 (2B)** | Gemma Terms of Use (Open Weights) | Google DeepMind via local Ollama | 100% in RAM (`localhost:11434`) |
+| **Risk Scoring AI** | **TabPFN** | Apache 2.0 | Prior Labs / AutoML | 100% on CPU/GPU |
 | **Local LLM Daemon** | **Ollama** | MIT License | Ollama Open Source Runner | Local process |
 | **Frontend & Audio** | **Vanilla HTML5 + Web Audio** | Open Web Standards | W3C Standard APIs | Zero third-party trackers |
 | **Cloud API Keys** | **ZERO (0)** | N/A | No OpenAI, No Anthropic, No Cloud | Offline air-gapped safe |
@@ -118,7 +160,21 @@ Ghost Threads was evaluated against an 84-sample benchmark dataset representing 
 - Scanned 2 years of local chat archives.
 - Found 47 unkept promises.
 - Oldest ghost: 412 days cold ("I'll review the pull request before midnight").
-- Privacy guarantee: Demonstrated via `--network-audit` with zero external socket egress.
+- Privacy guarantee: Demonstrated via `--network-audit` with zero external socket egress:
+
+```text
+====================================================================
+ [VERIFIED] PRIVACY VERIFICATION BADGE // 100% LOCAL PROCESSING AUDIT
+====================================================================
+ [OK] Chat Ingestion:    100% On-Device (Zero cloud uploads)
+ [OK] LLM Inference:     Local Google Gemma 2 (Ollama / Local RAM)
+ [OK] Tabular AI:        TabPFN In-Context Learning (Local CPU/GPU)
+ [OK] External AI APIs:  None (Zero calls to OpenAI, Claude, etc.)
+ [OK] Network Sockets:   0 External outbound packets
+ [OK] Ephemeral Data:    Temporary embeddings wiped on process exit
+ [OK] Cloud Keys:        Zero (0) required
+====================================================================
+```
 
 ---
 
